@@ -1,0 +1,82 @@
+# Windows 照片查看器
+# 经典的 Windows 照片查看工具
+
+[patch]
+id = "winphotoviewer"
+name = "Windows 照片查看器"
+category = "components"
+description = "经典 Windows 照片查看器（Windows Photo Viewer）"
+order = 15
+dependencies = ["build-config"]
+
+# 复制照片查看器文件
+[[files.copy]]
+source = "Windows\\System32\\shimgvw.dll"
+dest = "Windows\\System32\\shimgvw.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\PhotoViewer.dll"
+dest = "Windows\\System32\\PhotoViewer.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\zh-CN\\shimgvw.dll.mui"
+dest = "Windows\\System32\\zh-CN\\shimgvw.dll.mui"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = []
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 注册照片查看器
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\PhotoViewer.FileAssoc.Tiff\\shell\\open\\command"
+value = ""
+type = "REG_EXPAND_SZ"
+data = "%%SystemRoot%%\\System32\\shimgvw.dll,ImageView_Fullscreen %%1"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\PhotoViewer.FileAssoc.Tiff\\DefaultIcon"
+value = ""
+type = "REG_SZ"
+data = "%%SystemRoot%%\\System32\\shimgvw.dll,-304"
+
+# 注册图片文件关联
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.jpg"
+value = ""
+type = "REG_SZ"
+data = "PhotoViewer.FileAssoc.Tiff"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.jpeg"
+value = ""
+type = "REG_SZ"
+data = "PhotoViewer.FileAssoc.Tiff"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.png"
+value = ""
+type = "REG_SZ"
+data = "PhotoViewer.FileAssoc.Tiff"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.bmp"
+value = ""
+type = "REG_SZ"
+data = "PhotoViewer.FileAssoc.Tiff"
+
+# 卸载注册表
+unload = ["SOFTWARE"]

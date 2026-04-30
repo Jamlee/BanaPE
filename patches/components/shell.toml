@@ -1,0 +1,80 @@
+# Shell 配置
+# 配置 Windows PE 的 Shell 程序
+
+[patch]
+id = "shell"
+name = "Shell (Explorer/WinXShell)"
+category = "components"
+description = "配置 Windows PE 的 Shell，支持 Explorer 或 WinXShell"
+order = 10
+dependencies = ["build-config"]
+
+# 复制 Shell 相关文件
+[[files.copy]]
+source = "Windows\\explorer.exe"
+dest = "Windows\\explorer.exe"
+
+[[files.copy]]
+source = "Windows\\System32\\taskbar.dll"
+dest = "Windows\\System32\\taskbar.dll"
+
+# 如果选择 WinXShell
+[[files.copy]]
+source = "Tools\\WinXShell.exe"
+dest = "Windows\\System32\\WinXShell.exe"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\System32\\config\\systemprofile\\Desktop",
+    "Windows\\System32\\config\\systemprofile\\AppData"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" },
+    { hive = "DEFAULT", file = "Windows\\System32\\config\\DEFAULT" }
+]
+
+# 设置 Shell 程序
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion\\Winlogon"
+value = "Shell"
+type = "REG_SZ"
+data = "WinXShell.exe"
+# 或者 "explorer.exe"
+
+# 配置 Explorer 主题
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows\\CurrentVersion\\Themes"
+value = "InstallTheme"
+type = "REG_SZ"
+data = "%SystemRoot%\\resources\\Themes\\aero.theme"
+
+# 任务栏设置
+[[registry.add]]
+hive = "DEFAULT"
+key = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+value = "TaskbarGlomLevel"
+type = "REG_DWORD"
+data = "2"  # 0=始终合并, 1=满时合并, 2=从不合并
+
+[[registry.add]]
+hive = "DEFAULT"
+key = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+value = "ShowTaskViewButton"
+type = "REG_DWORD"
+data = "0"  # 隐藏任务视图按钮
+
+# 卸载注册表
+unload = ["SOFTWARE", "DEFAULT"]
+
+# 设置启动命令
+[[commands]]
+tool = "cmd"
+args = ["/c", "echo Shell configured"]
+admin = false

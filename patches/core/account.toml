@@ -1,0 +1,67 @@
+# 账户设置补丁
+# 配置管理员账户和自动登录
+
+[patch]
+id = "account"
+name = "账户设置"
+category = "core"
+description = "配置管理员账户、自动登录等"
+order = 2
+dependencies = ["build-config"]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SAM", file = "Windows\\System32\\config\\SAM" },
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 启用 Administrator 账户
+[[registry.add]]
+hive = "SAM"
+key = "SAM\\Domains\\Account\\Users\\000001F4"
+value = "F"
+type = "REG_BINARY"
+data = "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+# 设置自动登录
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion\\Winlogon"
+value = "AutoAdminLogon"
+type = "REG_SZ"
+data = "1"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion\\Winlogon"
+value = "DefaultUserName"
+type = "REG_SZ"
+data = "Administrator"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion\\Winlogon"
+value = "DefaultPassword"
+type = "REG_SZ"
+data = "123456"
+
+# 跳过 EULA
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion"
+value = "EulaAccepted"
+type = "REG_DWORD"
+data = "1"
+
+# 禁用 UAC
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+value = "EnableLUA"
+type = "REG_DWORD"
+data = "0"
+
+# 卸载注册表
+unload = ["SAM", "SYSTEM", "SOFTWARE"]

@@ -1,0 +1,55 @@
+# 画图程序
+# Microsoft Paint 图像编辑工具
+
+[patch]
+id = "mspaint"
+name = "画图"
+category = "components"
+description = "Microsoft Paint 图像编辑器"
+order = 13
+dependencies = ["build-config"]
+
+# 复制画图相关文件
+[[files.copy]]
+source = "Windows\\System32\\mspaint.exe"
+dest = "Windows\\System32\\mspaint.exe"
+
+[[files.copy]]
+source = "Windows\\System32\\zh-CN\\mspaint.exe.mui"
+dest = "Windows\\System32\\zh-CN\\mspaint.exe.mui"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = []
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 注册文件关联
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\Paint.Picture\\shell\\open\\command"
+value = ""
+type = "REG_SZ"
+data = "mspaint.exe \"%1\""
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.bmp"
+value = ""
+type = "REG_SZ"
+data = "Paint.Picture"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.png"
+value = ""
+type = "REG_SZ"
+data = "Paint.Picture"
+
+# 卸载注册表
+unload = ["SOFTWARE"]

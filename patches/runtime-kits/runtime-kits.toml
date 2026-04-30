@@ -1,0 +1,204 @@
+# 运行时包补丁
+# VC++ 运行时、MSI、DirectX、OpenGL 等运行时库支持
+
+[patch]
+id = "runtime-kits"
+name = "增强程序支持"
+category = "runtime-kits"
+description = "VC++ 运行时、MSI、DirectX、OpenGL、兼容性等运行时支持"
+order = 22
+dependencies = ["build-config"]
+
+# ============================================
+# WOW64 支持 (32位程序在64位系统上运行)
+# ============================================
+
+# SysWOW64 基础文件
+[[files.copy]]
+source = "Windows\\SysWOW64\\ntdll.dll"
+dest = "Windows\\SysWOW64\\ntdll.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\SysWOW64\\kernel32.dll"
+dest = "Windows\\SysWOW64\\kernel32.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\SysWOW64\\kernelbase.dll"
+dest = "Windows\\SysWOW64\\kernelbase.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\SysWOW64\\wow64.dll"
+dest = "Windows\\SysWOW64\\wow64.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\SysWOW64\\wow64win.dll"
+dest = "Windows\\SysWOW64\\wow64win.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\SysWOW64\\wow64cpu.dll"
+dest = "Windows\\SysWOW64\\wow64cpu.dll"
+optional = true
+
+# ============================================
+# VC++ 运行时库
+# ============================================
+
+[[files.copy]]
+source = "Windows\\System32\\msvcp80.dll"
+dest = "Windows\\System32\\msvcp80.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\msvcr80.dll"
+dest = "Windows\\System32\\msvcr80.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\msvcp90.dll"
+dest = "Windows\\System32\\msvcp90.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\msvcr90.dll"
+dest = "Windows\\System32\\msvcr90.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\winsxs"
+dest = "Windows\\winsxs"
+recursive = true
+optional = true
+
+# ============================================
+# MSI Windows Installer
+# ============================================
+
+[[files.copy]]
+source = "Windows\\System32\\msi.dll"
+dest = "Windows\\System32\\msi.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\msiexec.exe"
+dest = "Windows\\System32\\msiexec.exe"
+
+[[files.copy]]
+source = "Windows\\System32\\msihnd.dll"
+dest = "Windows\\System32\\msihnd.dll"
+optional = true
+
+# ============================================
+# DirectX 支持
+# ============================================
+
+[[files.copy]]
+source = "Windows\\System32\\d3d9.dll"
+dest = "Windows\\System32\\d3d9.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\d3d11.dll"
+dest = "Windows\\System32\\d3d11.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\dxgi.dll"
+dest = "Windows\\System32\\dxgi.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\dxdiag.exe"
+dest = "Windows\\System32\\dxdiag.exe"
+optional = true
+
+# ============================================
+# OpenGL 支持
+# ============================================
+
+[[files.copy]]
+source = "Windows\\System32\\opengl32.dll"
+dest = "Windows\\System32\\opengl32.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\glu32.dll"
+dest = "Windows\\System32\\glu32.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\nglmf32.dll"
+dest = "Windows\\System32\\nglmf32.dll"
+optional = true
+
+# ============================================
+# 应用程序兼容性
+# ============================================
+
+[[files.copy]]
+source = "Windows\\System32\\slayerui.dll"
+dest = "Windows\\System32\\slayerui.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\apphelp.dll"
+dest = "Windows\\System32\\apphelp.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\acppage.dll"
+dest = "Windows\\System32\\acppage.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\PcaSvc.dll"
+dest = "Windows\\System32\\PcaSvc.dll"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\SysWOW64",
+    "Windows\\System32\\config\\systemprofile\\AppData"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 启用 MSI 服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\msiserver"
+value = "Start"
+type = "REG_DWORD"
+data = "3"  # 手动启动
+
+# 兼容性助手服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\PcaSvc"
+value = "Start"
+type = "REG_DWORD"
+data = "3"  # 手动启动
+
+# 高兼容性模式 - 支持更多应用程序
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options"
+value = "GlobalFlag"
+type = "REG_DWORD"
+data = "0"
+
+# 卸载注册表
+unload = ["SYSTEM", "SOFTWARE"]
+
+# 注册 MSI
+[[commands]]
+tool = "cmd"
+args = ["/c", "regsvr32 /s msi.dll"]
+admin = true

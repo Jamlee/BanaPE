@@ -1,0 +1,84 @@
+# 构建配置补丁
+# 配置基本的系统设置、注册表等
+
+[patch]
+id = "build-config"
+name = "构建配置"
+category = "core"
+description = "核心构建配置，包括计算机名、注册表设置等"
+order = 1
+dependencies = []
+
+# 文件操作
+[files]
+create_dirs = [
+    "Windows\\System32\\config\\systemprofile",
+    "Users\\Default",
+    "ProgramData"
+]
+
+# 从源系统复制文件
+[[files.copy]]
+source = "Windows\\System32\\config\\DEFAULT"
+dest = "Windows\\System32\\config\\DEFAULT"
+
+[[files.copy]]
+source = "Windows\\System32\\config\\SYSTEM"
+dest = "Windows\\System32\\config\\SYSTEM"
+
+[[files.copy]]
+source = "Windows\\System32\\config\\SOFTWARE"
+dest = "Windows\\System32\\config\\SOFTWARE"
+
+# 注册表操作
+[registry]
+load = [
+    { hive = "DEFAULT", file = "Windows\\System32\\config\\DEFAULT" },
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 添加注册表项
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Control\\ComputerName\\ComputerName"
+value = "ComputerName"
+type = "REG_SZ"
+data = "WINXPE"
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\Tcpip\\Parameters"
+value = "Hostname"
+type = "REG_SZ"
+data = "WINXPE"
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Control\\SystemStartOptions"
+value = "SYSTEMROOT"
+type = "REG_SZ"
+data = "\\Windows"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion\\ProfileList"
+value = "ProfilesDirectory"
+type = "REG_EXPAND_SZ"
+data = "%SystemDrive%\\Users"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows NT\\CurrentVersion\\ProfileList"
+value = "ProgramData"
+type = "REG_EXPAND_SZ"
+data = "%SystemDrive%\\ProgramData"
+
+# 卸载注册表
+unload = ["DEFAULT", "SYSTEM", "SOFTWARE"]
+
+# 执行的命令
+[[commands]]
+tool = "dism"
+args = ["/Image:X:\\", "/Set-TargetEditionVersion:WinPE"]
+admin = true

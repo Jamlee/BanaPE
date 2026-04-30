@@ -1,0 +1,102 @@
+# DWM 桌面窗口管理器
+# 提供 Aero 效果、透明效果等
+
+[patch]
+id = "dwm"
+name = "DWM 桌面窗口管理器"
+category = "components"
+description = "Desktop Window Manager，提供透明、缩略图等高级桌面效果"
+order = 14
+dependencies = ["build-config", "shell"]
+
+# 复制 DWM 相关文件
+[[files.copy]]
+source = "Windows\\System32\\dwm.exe"
+dest = "Windows\\System32\\dwm.exe"
+
+[[files.copy]]
+source = "Windows\\System32\\dwmapi.dll"
+dest = "Windows\\System32\\dwmapi.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\dwmcore.dll"
+dest = "Windows\\System32\\dwmcore.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\DXCore.dll"
+dest = "Windows\\System32\\DXCore.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\dxgi.dll"
+dest = "Windows\\System32\\dxgi.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\d3d9.dll"
+dest = "Windows\\System32\\d3d9.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\d3d10.dll"
+dest = "Windows\\System32\\d3d10.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\d3d11.dll"
+dest = "Windows\\System32\\d3d11.dll"
+
+# 主题文件
+[[files.copy]]
+source = "Windows\\Resources\\Themes\\aero.theme"
+dest = "Windows\\Resources\\Themes\\aero.theme"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\System32\\config\\systemprofile\\AppData\\Local\\Microsoft\\Windows\\Themes"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 启用 DWM 服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\DwmCore"
+value = "Start"
+type = "REG_DWORD"
+data = "1"  # 系统启动
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\Dwm"
+value = "Start"
+type = "REG_DWORD"
+data = "1"
+
+# 启用桌面组合
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
+value = "TurnOffSPIAnimations"
+type = "REG_DWORD"
+data = "0"
+
+# 主题设置
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows\\CurrentVersion\\Themes"
+value = "InstallTheme"
+type = "REG_SZ"
+data = "%SystemRoot%\\resources\\Themes\\aero.theme"
+
+# 卸载注册表
+unload = ["SYSTEM", "SOFTWARE"]
+
+# 启动 DWM
+[[commands]]
+tool = "cmd"
+args = ["/c", "net start UxSms"]
+admin = true

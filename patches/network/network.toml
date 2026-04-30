@@ -1,0 +1,114 @@
+# 网络支持补丁
+# 配置 TCP/IP、DNS、DHCP 等网络功能
+
+[patch]
+id = "network"
+name = "网络支持"
+category = "network"
+description = "启用 TCP/IP 网络、DNS 客户端、DHCP 客户端等"
+order = 20
+dependencies = ["build-config"]
+
+# 复制网络相关文件
+[[files.copy]]
+source = "Windows\\System32\\drivers\\tcpip.sys"
+dest = "Windows\\System32\\drivers\\tcpip.sys"
+
+[[files.copy]]
+source = "Windows\\System32\\drivers\\afd.sys"
+dest = "Windows\\System32\\drivers\\afd.sys"
+
+[[files.copy]]
+source = "Windows\\System32\\drivers\\netbt.sys"
+dest = "Windows\\System32\\drivers\\netbt.sys"
+
+[[files.copy]]
+source = "Windows\\System32\\dhcpclicore.dll"
+dest = "Windows\\System32\\dhcpclicore.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\dnsapi.dll"
+dest = "Windows\\System32\\dnsapi.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\netshell.dll"
+dest = "Windows\\System32\\netshell.dll"
+
+# 网络托盘图标
+[[files.copy]]
+source = "Windows\\System32\\netcenter.dll"
+dest = "Windows\\System32\\netcenter.dll"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\System32\\LogFiles",
+    "Windows\\System32\\Wbem"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 启用网络服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\Dhcp"
+value = "Start"
+type = "REG_DWORD"
+data = "2"  # 自动启动
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\Dnscache"
+value = "Start"
+type = "REG_DWORD"
+data = "2"
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\Netman"
+value = "Start"
+type = "REG_DWORD"
+data = "3"  # 手动启动
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\Tcpip"
+value = "Start"
+type = "REG_DWORD"
+data = "1"  # 系统启动
+
+# 网络适配器设置
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Control\\Network"
+value = "Config"
+type = "REG_BINARY"
+data = "0000000000000000"
+
+# 防火墙设置
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\SharedAccess\\Parameters\\FirewallPolicy"
+value = "EnableFirewall"
+type = "REG_DWORD"
+data = "0"  # 禁用防火墙
+
+# 卸载注册表
+unload = ["SYSTEM", "SOFTWARE"]
+
+# 配置网络命令
+[[commands]]
+tool = "cmd"
+args = ["/c", "netsh interface ipv4 set dynamicport tcp start=1025 num=64511"]
+admin = true
+
+[[commands]]
+tool = "cmd"
+args = ["/c", "netsh interface ipv4 set dynamicport udp start=1025 num=64511"]
+admin = true

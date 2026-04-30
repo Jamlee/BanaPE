@@ -1,0 +1,64 @@
+# VC++ 运行时库
+# Visual C++ 8, 9 运行时支持
+
+[patch]
+id = "vcruntime"
+name = "VC++ 运行时"
+category = "components"
+description = "Visual C++ 8, 9 运行时库支持"
+order = 16
+dependencies = ["build-config"]
+
+# 复制 VC++ 运行时文件
+[[files.copy]]
+source = "Windows\\System32\\msvcp80.dll"
+dest = "Windows\\System32\\msvcp80.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\msvcr80.dll"
+dest = "Windows\\System32\\msvcr80.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\msvcp90.dll"
+dest = "Windows\\System32\\msvcp90.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\msvcr90.dll"
+dest = "Windows\\System32\\msvcr90.dll"
+
+# WinSxS 清单文件
+[[files.copy]]
+source = "Windows\\winsxs\\Manifests"
+dest = "Windows\\winsxs\\Manifests"
+recursive = true
+optional = true
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\winsxs\\Manifests"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 注册运行时库
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1F1C2DFC-2D24-3E06-BCB8-725134ADF989}"
+value = "DisplayName"
+type = "REG_SZ"
+data = "Microsoft Visual C++ 2005 Redistributable"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\Windows\\CurrentVersion\\Uninstall\\{9BE518E6-ECC6-35A9-88E4-87755C07200F}"
+value = "DisplayName"
+type = "REG_SZ"
+data = "Microsoft Visual C++ 2008 Redistributable"
+
+# 卸载注册表
+unload = ["SOFTWARE"]

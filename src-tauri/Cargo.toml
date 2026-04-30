@@ -1,0 +1,26 @@
+[package]
+name = "banape"
+version = "1.0.0"
+description = "BanaPE - Modern WinPE Builder for Win10/Win11 x64"
+authors = ["BanaPE"]
+edition = "2021"
+
+[lib]
+name = "banape_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+thiserror = "2"
+regex = "1"
+tokio = { version = "1", features = ["full"] }
+rfd = "0.14"

@@ -1,0 +1,79 @@
+# 驱动支持补丁
+# 配置 PnP 和驱动存储
+
+[patch]
+id = "drivers"
+name = "驱动支持"
+category = "drivers"
+description = "启用 PnP 设备管理和驱动存储，支持自动安装驱动"
+order = 21
+dependencies = ["build-config"]
+
+# 复制驱动相关文件
+[[files.copy]]
+source = "Windows\\System32\\drivers"
+dest = "Windows\\System32\\drivers"
+recursive = true
+
+[[files.copy]]
+source = "Windows\\System32\\DriverStore"
+dest = "Windows\\System32\\DriverStore"
+recursive = true
+
+[[files.copy]]
+source = "Windows\\System32\\drvstore.dll"
+dest = "Windows\\System32\\drvstore.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\setupapi.dll"
+dest = "Windows\\System32\\setupapi.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\newdev.dll"
+dest = "Windows\\System32\\newdev.dll"
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\System32\\DriverStore\\FileRepository",
+    "Windows\\INF"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 启用 PnP 服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\PlugPlay"
+value = "Start"
+type = "REG_DWORD"
+data = "2"  # 自动启动
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\Dnscache"
+value = "Start"
+type = "REG_DWORD"
+data = "2"
+
+# 驱动签名策略
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Control\\Session Manager\\Memory Management"
+value = "DisablePagingExecutive"
+type = "REG_DWORD"
+data = "1"
+
+# 卸载注册表
+unload = ["SYSTEM", "SOFTWARE"]
+
+# 导入驱动命令
+[[commands]]
+tool = "dism"
+args = ["/Image:X:\\", "/Add-Driver", "/Driver:D:\\Drivers", "/Recurse"]
+admin = true

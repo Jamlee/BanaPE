@@ -1,0 +1,113 @@
+# 输入法支持
+# 微软拼音、五笔等输入法
+
+[patch]
+id = "ime"
+name = "输入法"
+category = "components"
+description = "中文输入法支持（微软拼音、五笔等）"
+order = 18
+dependencies = ["build-config"]
+
+# 复制输入法文件
+[[files.copy]]
+source = "Windows\\System32\\InputMethod"
+dest = "Windows\\System32\\InputMethod"
+recursive = true
+
+[[files.copy]]
+source = "Windows\\System32\\chxapp4.dll"
+dest = "Windows\\System32\\chxapp4.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\chxinput1.dll"
+dest = "Windows\\System32\\chxinput1.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\chxencoder.dll"
+dest = "Windows\\System32\\chxencoder.dll"
+optional = true
+
+# 微软拼音
+[[files.copy]]
+source = "Windows\\System32\\chsime"
+dest = "Windows\\System32\\chsime"
+recursive = true
+optional = true
+
+# 微软五笔
+[[files.copy]]
+source = "Windows\\System32\\CHTIME"
+dest = "Windows\\System32\\CHTIME"
+recursive = true
+optional = true
+
+# 输入法框架
+[[files.copy]]
+source = "Windows\\System32\\InputHost.dll"
+dest = "Windows\\System32\\InputHost.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\TextInputHost.dll"
+dest = "Windows\\System32\\TextInputHost.dll"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\System32\\InputMethod\\CHS",
+    "Windows\\System32\\InputMethod\\CHT"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" },
+    { hive = "DEFAULT", file = "Windows\\System32\\config\\DEFAULT" }
+]
+
+# 启用输入法服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\TabletInputService"
+value = "Start"
+type = "REG_DWORD"
+data = "3"  # 手动启动
+
+# 注册输入法
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\InputMethod\\CHS"
+value = ""
+type = "REG_SZ"
+data = ""
+
+# 默认输入法设置
+[[registry.add]]
+hive = "DEFAULT"
+key = "Keyboard Layout\\Preload"
+value = "1"
+type = "REG_SZ"
+data = "00000804"  # 中文（简体）- 美式键盘
+
+[[registry.add]]
+hive = "DEFAULT"
+key = "Keyboard Layout\\Preload"
+value = "2"
+type = "REG_SZ"
+data = "e0200804"  # 微软拼音
+
+# 输入法指示器
+[[registry.add]]
+hive = "DEFAULT"
+key = "Software\\Microsoft\\CTF\\LangBar"
+value = "ShowStatus"
+type = "REG_DWORD"
+data = "4"  # 显示在任务栏
+
+# 卸载注册表
+unload = ["SYSTEM", "SOFTWARE", "DEFAULT"]

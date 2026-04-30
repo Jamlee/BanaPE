@@ -1,0 +1,98 @@
+# MSI 安装包支持
+# Windows Installer 服务
+
+[patch]
+id = "msi"
+name = "MSI 安装包"
+category = "components"
+description = "Windows Installer 服务，支持 .msi 安装包"
+order = 19
+dependencies = ["build-config"]
+
+# 复制 MSI 相关文件
+[[files.copy]]
+source = "Windows\\System32\\msi.dll"
+dest = "Windows\\System32\\msi.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\msiexec.exe"
+dest = "Windows\\System32\\msiexec.exe"
+
+[[files.copy]]
+source = "Windows\\System32\\msihnd.dll"
+dest = "Windows\\System32\\msihnd.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\msimsg.dll"
+dest = "Windows\\System32\\msimsg.dll"
+optional = true
+
+[[files.copy]]
+source = "Windows\\System32\\zh-CN\\msiexec.exe.mui"
+dest = "Windows\\System32\\zh-CN\\msiexec.exe.mui"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = []
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" },
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 注册 MSI 服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\msiserver"
+value = "Start"
+type = "REG_DWORD"
+data = "3"  # 手动启动
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\msiserver"
+value = "DisplayName"
+type = "REG_SZ"
+data = "Windows Installer"
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\msiserver"
+value = "ImagePath"
+type = "REG_EXPAND_SZ"
+data = "C:\\Windows\\system32\\msiexec.exe /V"
+
+# 注册 MSI 文件关联
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.msi"
+value = ""
+type = "REG_SZ"
+data = "Msi.Package"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\Msi.Package\\shell\\open\\command"
+value = ""
+type = "REG_SZ"
+data = "msiexec.exe /i \"%1\" %*"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\Msi.Package\\shell\\runas\\command"
+value = ""
+type = "REG_SZ"
+data = "msiexec.exe /i \"%1\" %*"
+
+# 卸载注册表
+unload = ["SYSTEM", "SOFTWARE"]
+
+# 注册 MSI DLL
+[[commands]]
+tool = "cmd"
+args = ["/c", "regsvr32 /s msi.dll"]
+admin = true

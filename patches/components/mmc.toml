@@ -1,0 +1,75 @@
+# MMC 管理控制台补丁
+# 添加 MMC 支持
+
+[patch]
+id = "mmc"
+name = "MMC 管理控制台"
+category = "components"
+description = "Microsoft Management Console，用于管理工具（设备管理器、磁盘管理等）"
+order = 11
+dependencies = ["build-config", "shell"]
+
+# 复制 MMC 相关文件
+[[files.copy]]
+source = "Windows\\System32\\mmc.exe"
+dest = "Windows\\System32\\mmc.exe"
+
+[[files.copy]]
+source = "Windows\\System32\\mmcbase.dll"
+dest = "Windows\\System32\\mmcbase.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\mmcndmgr.dll"
+dest = "Windows\\System32\\mmcndmgr.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\mmcshext.dll"
+dest = "Windows\\System32\\mmcshext.dll"
+
+# 复制管理单元
+[[files.copy]]
+source = "Windows\\System32\\devmgr.dll"
+dest = "Windows\\System32\\devmgr.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\diskmgmt.msc"
+dest = "Windows\\System32\\diskmgmt.msc"
+
+[[files.copy]]
+source = "Windows\\System32\\compmgmt.msc"
+dest = "Windows\\System32\\compmgmt.msc"
+
+[[files.copy]]
+source = "Windows\\System32\\eventvwr.msc"
+dest = "Windows\\System32\\eventvwr.msc"
+
+# 创建目录
+[files]
+create_dirs = [
+    "Windows\\System32\\Microsoft\\MMC"
+]
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" },
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" }
+]
+
+# 注册 MMC 组件
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\MMC"
+value = ""
+type = "REG_SZ"
+data = ""
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Microsoft\\MMC\\NodeTypes"
+value = ""
+type = "REG_SZ"
+data = ""
+
+# 卸载注册表
+unload = ["SOFTWARE", "SYSTEM"]

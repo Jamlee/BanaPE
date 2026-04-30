@@ -1,0 +1,47 @@
+# 记事本补丁
+# 添加 Notepad 支持
+
+[patch]
+id = "notepad"
+name = "记事本"
+category = "components"
+description = "Notepad 文本编辑器"
+order = 12
+dependencies = ["build-config"]
+
+# 复制记事本文件
+[[files.copy]]
+source = "Windows\\System32\\notepad.exe"
+dest = "Windows\\System32\\notepad.exe"
+
+[[files.copy]]
+source = "Windows\\notepad.exe"
+dest = "Windows\\notepad.exe"
+
+# 创建目录
+[files]
+create_dirs = []
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
+]
+
+# 注册文件关联
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\txtfile\\shell\\open\\command"
+value = ""
+type = "REG_SZ"
+data = "NOTEPAD.EXE %1"
+
+[[registry.add]]
+hive = "SOFTWARE"
+key = "Classes\\.txt"
+value = ""
+type = "REG_SZ"
+data = "txtfile"
+
+# 卸载注册表
+unload = ["SOFTWARE"]

@@ -1,0 +1,24 @@
+{
+  "name": "banape",
+  "version": "1.0.0",
+  "description": "BanaPE - Modern WinPE Builder for Win10/Win11 x64",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:debug": "tauri build --debug"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "vite": "^6.3.4"
+  }
+}

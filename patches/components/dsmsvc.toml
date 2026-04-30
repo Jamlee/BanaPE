@@ -1,0 +1,55 @@
+# DSM 服务
+# Device Setup Manager 设备设置管理服务
+
+[patch]
+id = "dsmsvc"
+name = "DSM 服务"
+category = "components"
+description = "Device Setup Manager 服务，用于设备元数据和图标下载"
+order = 17
+dependencies = ["build-config"]
+
+# 复制 DSM 相关文件
+[[files.copy]]
+source = "Windows\\System32\\DsmSvc.dll"
+dest = "Windows\\System32\\DsmSvc.dll"
+
+[[files.copy]]
+source = "Windows\\System32\\DeviceSetupManager.dll"
+dest = "Windows\\System32\\DeviceSetupManager.dll"
+optional = true
+
+# 创建目录
+[files]
+create_dirs = []
+
+# 注册表配置
+[registry]
+load = [
+    { hive = "SYSTEM", file = "Windows\\System32\\config\\SYSTEM" }
+]
+
+# 启用 DSM 服务
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\DsmSvc"
+value = "Start"
+type = "REG_DWORD"
+data = "3"  # 手动启动
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\DsmSvc"
+value = "DisplayName"
+type = "REG_SZ"
+data = "Device Setup Manager"
+
+[[registry.add]]
+hive = "SYSTEM"
+key = "ControlSet001\\Services\\DsmSvc"
+value = "Description"
+type = "REG_SZ"
+data = "下载设备的元数据和图标"
+
+# 卸载注册表
+unload = ["SYSTEM"]
