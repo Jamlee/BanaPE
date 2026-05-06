@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="50%" style="stop-color:#4f46e5"/>
+      <stop offset="100%" style="stop-color:#3730a3"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.35)"/>
+      <stop offset="50%" style="stop-color:rgba(255,255,255,0.1)"/>
+      <stop offset="100%" style="stop-color:rgba(0,0,0,0.15)"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+    <radialGradient id="glow" cx="40%" cy="30%">
+      <stop offset="0%" style="stop-color:rgba(129,140,248,0.4)"/>
+      <stop offset="100%" style="stop-color:rgba(79,70,229,0)"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- 圆形背景 -->
+  <circle cx="128" cy="128" r="118" fill="url(#bgGrad)" filter="url(#shadow)"/>
+  <circle cx="128" cy="128" r="118" fill="url(#glow)"/>
+  <circle cx="128" cy="128" r="118" fill="url(#shine)"/>
+  
+  <!-- 内圈装饰 -->
+  <circle cx="128" cy="128" r="96" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  
+  <!-- B 字母 -->
+  <text x="130" y="162" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="120" font-weight="900" fill="white">
+    B
+  </text>
+  
+  <!-- 高光效果 -->
+  <ellipse cx="95" cy="70" rx="55" ry="30" fill="rgba(255,255,255,0.12)"/>
+</svg>

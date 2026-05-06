@@ -1,588 +1,353 @@
 <template>
   <div class="component-view">
-    <!-- 顶部工具栏 -->
-    <div class="toolbar">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">📦</div>
+        <div class="card-title">组件选择</div>
+        <div class="card-actions">
+          <button class="btn btn-secondary btn-xs" @click="selectAll">全选</button>
+          <button class="btn btn-secondary btn-xs" @click="clearAll">全不选</button>
+        </div>
+      </div>
+
+      <div class="input-group">
         <input 
           type="text" 
-          v-model="searchQuery" 
-          placeholder="搜索补丁..." 
-          class="search-input"
-        >
+          class="input-field" 
+          v-model="searchText" 
+          placeholder="搜索组件..."
+        />
       </div>
-      <div class="toolbar-actions">
-        <button class="btn-text" @click="enableAll">全部启用</button>
-        <button class="btn-text" @click="disableAll">全部禁用</button>
-      </div>
-    </div>
 
-    <!-- 补丁列表 -->
-    <div class="patches-container">
-      <div v-for="cat in filteredCategories" :key="cat.id" class="category-section">
-        <!-- 分类标题 -->
-        <div class="category-header" @click="cat.expanded = !cat.expanded">
-          <div class="category-title">
-            <span class="category-icon">{{ cat.icon }}</span>
-            <span class="category-name">{{ cat.name }}</span>
-            <span class="category-count">{{ cat.enabledCount }}/{{ cat.items.length }}</span>
-          </div>
-          <span class="expand-icon" :class="{ expanded: cat.expanded }">▼</span>
-        </div>
-
-        <!-- 补丁列表 -->
-        <div class="patches-list" v-show="cat.expanded">
+      <div class="category-list">
+        <div v-for="category in categories" :key="category.name" class="category">
           <div 
-            v-for="patch in cat.items" 
-            :key="patch.id" 
-            class="patch-item"
-            :class="{ 
-              'patch-enabled': patch.enabled,
-              'patch-selected': selectedPatch === patch.id 
-            }"
-            @click="selectPatch(patch)"
+            class="category-header" 
+            @click="toggleCategory(category.name)"
           >
-            <div class="patch-info">
-              <div class="patch-name">{{ patch.name }}</div>
-              <div class="patch-desc" v-if="patch.description">{{ patch.description }}</div>
+            <span class="category-icon">{{ category.icon }}</span>
+            <span class="category-name">{{ category.name }}</span>
+            <span class="category-count">{{ getCategoryCount(category.name) }}/{{ category.items.length }}</span>
+            <span class="category-arrow">{{ expandedCategories.includes(category.name) ? '▼' : '▶' }}</span>
+          </div>
+          
+          <div v-show="expandedCategories.includes(category.name)" class="category-content">
+            <div 
+              v-for="item in getFilteredItems(category.items)" 
+              :key="item.id" 
+              class="component-item"
+              :class="{ selected: enabledPatches.includes(item.id) }"
+              @click="toggleComponent(item.id)"
+            >
+              <label class="component-checkbox">
+                <input 
+                  type="checkbox" 
+                  :checked="enabledPatches.includes(item.id)"
+                  @change="toggleComponent(item.id)"
+                />
+              </label>
+              <div class="component-info">
+                <div class="component-name">{{ item.name }}</div>
+                <div class="component-desc">{{ item.desc }}</div>
+              </div>
             </div>
-            <label class="patch-toggle" @click.stop>
-              <input 
-                type="checkbox" 
-                v-model="patch.enabled" 
-                @change="saveConfig"
-              >
-              <span class="toggle-slider"></span>
-            </label>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 右侧详情面板 -->
-    <div class="detail-panel" v-if="selectedPatchData">
-      <div class="detail-header">
-        <h3>{{ selectedPatchData.name }}</h3>
-        <p class="detail-desc">{{ selectedPatchData.description }}</p>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">📋</div>
+        <div class="card-title">已选组件 ({{ enabledPatches.length }})</div>
       </div>
-
-      <div class="detail-content">
-        <!-- 文件操作 -->
-        <div class="detail-section" v-if="selectedPatchData.files?.copy?.length">
-          <h4>📁 文件操作 ({{ selectedPatchData.files.copy.length }})</h4>
-          <div class="file-list">
-            <div v-for="(file, idx) in selectedPatchData.files.copy" :key="idx" class="file-item">
-              <span class="file-icon">{{ file.optional ? '📄' : '📎' }}</span>
-              <span class="file-path">{{ file.source }}</span>
-              <span class="file-badge" v-if="file.optional">可选</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 注册表操作 -->
-        <div class="detail-section" v-if="selectedPatchData.registry?.add?.length">
-          <h4>📝 注册表 ({{ selectedPatchData.registry.add.length }})</h4>
-          <div class="reg-list">
-            <div v-for="(reg, idx) in selectedPatchData.registry.add" :key="idx" class="reg-item">
-              <div class="reg-hive">{{ reg.hive }}</div>
-              <div class="reg-key">{{ reg.key }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 命令 -->
-        <div class="detail-section" v-if="selectedPatchData.commands?.length">
-          <h4>⚙️ 命令 ({{ selectedPatchData.commands.length }})</h4>
-          <div class="cmd-list">
-            <div v-for="(cmd, idx) in selectedPatchData.commands" :key="idx" class="cmd-item">
-              <code>{{ cmd.tool }} {{ cmd.args.join(' ') }}</code>
-            </div>
-          </div>
-        </div>
-
-        <!-- 依赖关系 -->
-        <div class="detail-section" v-if="selectedPatchData.dependencies?.length">
-          <h4>🔗 依赖</h4>
-          <div class="dep-list">
-            <span v-for="dep in selectedPatchData.dependencies" :key="dep" class="dep-badge">
-              {{ dep }}
-            </span>
-          </div>
+      
+      <div v-if="enabledPatches.length > 0" class="selected-list">
+        <div 
+          v-for="patchId in enabledPatches" 
+          :key="patchId"
+          class="selected-item"
+        >
+          <span class="selected-name">{{ getPatchName(patchId) }}</span>
+          <button class="btn btn-danger btn-xs" @click="removePatch(patchId)">移除</button>
         </div>
       </div>
+      <div v-else class="empty-state">
+        <span>暂无选择的组件</span>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-secondary" @click="prevStep">← 上一步</button>
+      <button class="btn btn-primary btn-large" @click="nextStep">下一步 →</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, inject } from 'vue'
+import { ref, inject } from 'vue'
 
 const config = inject('config')
-const searchQuery = ref('')
-const selectedPatch = ref(null)
-const patches = ref([])
+const currentTab = inject('currentTab')
 
-// 分类配置
-const categories = reactive([
-  { id: 'core', name: '核心配置', icon: '⚙️', expanded: true },
-  { id: 'components', name: '功能组件', icon: '🧩', expanded: true },
-  { id: 'network', name: '网络支持', icon: '📶', expanded: false },
-  { id: 'drivers', name: '驱动支持', icon: '💻', expanded: false },
-  { id: 'runtime-kits', name: '运行时包', icon: '📦', expanded: false },
-])
+const searchText = ref('')
+const expandedCategories = ref(['系统工具', '网络工具'])
+const enabledPatches = ref(['explorer', 'network', 'notepad'])
 
-// 按分类组织补丁
-const categorizedPatches = computed(() => {
-  const result = {}
+const categories = [
+  {
+    name: '系统工具',
+    icon: '⚙️',
+    items: [
+      { id: 'explorer', name: '文件资源管理器', desc: 'Windows 文件管理器' },
+      { id: 'cmd', name: '命令提示符', desc: 'CMD 命令行工具' },
+      { id: 'powershell', name: 'PowerShell', desc: 'PowerShell 脚本环境' },
+      { id: 'notepad', name: '记事本', desc: '简单文本编辑器' },
+      { id: 'regedit', name: '注册表编辑器', desc: '系统注册表管理' },
+    ]
+  },
+  {
+    name: '网络工具',
+    icon: '🌐',
+    items: [
+      { id: 'network', name: '网络组件', desc: '网络适配器支持' },
+      { id: 'tcpip', name: 'TCP/IP 协议', desc: '网络协议栈' },
+      { id: 'wifi', name: '无线网卡', desc: 'WiFi 支持' },
+      { id: 'lan', name: '有线网卡', desc: '有线网络支持' },
+    ]
+  },
+  {
+    name: '硬件驱动',
+    icon: '🔧',
+    items: [
+      { id: 'storage', name: '存储驱动', desc: '磁盘存储支持' },
+      { id: 'usb', name: 'USB 驱动', desc: 'USB 设备支持' },
+      { id: 'video', name: '显卡驱动', desc: '显示适配器支持' },
+      { id: 'audio', name: '音频驱动', desc: '声音设备支持' },
+    ]
+  },
+  {
+    name: '安全工具',
+    icon: '🛡️',
+    items: [
+      { id: 'antivirus', name: '杀毒软件', desc: '病毒防护工具' },
+      { id: 'firewall', name: '防火墙', desc: '系统防火墙' },
+      { id: 'bitlocker', name: 'BitLocker', desc: '磁盘加密工具' },
+    ]
+  },
+]
+
+const toggleCategory = (name) => {
+  const idx = expandedCategories.value.indexOf(name)
+  if (idx > -1) {
+    expandedCategories.value.splice(idx, 1)
+  } else {
+    expandedCategories.value.push(name)
+  }
+}
+
+const getFilteredItems = (items) => {
+  if (!searchText.value) return items
+  const query = searchText.value.toLowerCase()
+  return items.filter(item => 
+    item.name.toLowerCase().includes(query) || 
+    item.desc.toLowerCase().includes(query)
+  )
+}
+
+const getCategoryCount = (name) => {
+  const category = categories.find(c => c.name === name)
+  return category.items.filter(item => enabledPatches.value.includes(item.id)).length
+}
+
+const toggleComponent = (id) => {
+  const idx = enabledPatches.value.indexOf(id)
+  if (idx > -1) {
+    enabledPatches.value.splice(idx, 1)
+  } else {
+    enabledPatches.value.push(id)
+  }
+  config.value.enabledPatches = [...enabledPatches.value]
+}
+
+const getPatchName = (id) => {
+  for (const category of categories) {
+    const item = category.items.find(i => i.id === id)
+    if (item) return item.name
+  }
+  return id
+}
+
+const removePatch = (id) => {
+  const idx = enabledPatches.value.indexOf(id)
+  if (idx > -1) {
+    enabledPatches.value.splice(idx, 1)
+    config.value.enabledPatches = [...enabledPatches.value]
+  }
+}
+
+const selectAll = () => {
+  const allIds = []
   categories.forEach(cat => {
-    result[cat.id] = []
+    cat.items.forEach(item => allIds.push(item.id))
   })
-  
-  patches.value.forEach(patch => {
-    if (result[patch.patch.category]) {
-      result[patch.patch.category].push(patch)
-    }
-  })
-  
-  // 按 order 排序
-  Object.keys(result).forEach(key => {
-    result[key].sort((a, b) => a.patch.order - b.patch.order)
-  })
-  
-  return result
-})
-
-// 带统计信息的分类
-const categoriesWithStats = computed(() => {
-  return categories.map(cat => {
-    const items = categorizedPatches.value[cat.id] || []
-    const enabledCount = items.filter(p => p.enabled).length
-    return {
-      ...cat,
-      items,
-      enabledCount
-    }
-  })
-})
-
-// 搜索过滤
-const filteredCategories = computed(() => {
-  if (!searchQuery.value) {
-    return categoriesWithStats.value
-  }
-  
-  const query = searchQuery.value.toLowerCase()
-  return categoriesWithStats.value.map(cat => ({
-    ...cat,
-    items: cat.items.filter(patch => 
-      patch.patch.name.toLowerCase().includes(query) ||
-      patch.patch.description.toLowerCase().includes(query) ||
-      patch.patch.id.toLowerCase().includes(query)
-    )
-  })).filter(cat => cat.items.length > 0)
-})
-
-// 选中的补丁详情
-const selectedPatchData = computed(() => {
-  if (!selectedPatch.value) return null
-  return patches.value.find(p => p.patch.id === selectedPatch.value)?.patch
-})
-
-// 从后端加载补丁
-async function loadPatches() {
-  try {
-    if (window.__TAURI__) {
-      const patchList = await window.__TAURI__.invoke('patches_get_list')
-      patches.value = patchList.map(p => ({
-        ...p,
-        enabled: true // 默认全部启用
-      }))
-      
-      // 默认选中第一个
-      if (patches.value.length > 0) {
-        selectedPatch.value = patches.value[0].patch.id
-      }
-    }
-  } catch (e) {
-    console.error('加载补丁列表失败:', e)
-  }
+  enabledPatches.value = allIds
+  config.value.enabledPatches = [...enabledPatches.value]
 }
 
-// 选择补丁
-function selectPatch(patch) {
-  selectedPatch.value = patch.patch.id
+const clearAll = () => {
+  enabledPatches.value = []
+  config.value.enabledPatches = []
 }
 
-// 全部启用
-function enableAll() {
-  patches.value.forEach(p => p.enabled = true)
-  saveConfig()
+const prevStep = () => {
+  currentTab.value = 0
 }
 
-// 全部禁用
-function disableAll() {
-  patches.value.forEach(p => p.enabled = false)
-  saveConfig()
+const nextStep = () => {
+  currentTab.value = 2
 }
-
-// 保存配置
-function saveConfig() {
-  const enabledPatches = patches.value
-    .filter(p => p.enabled)
-    .map(p => p.patch.id)
-  
-  config.value.enabledPatches = enabledPatches
-}
-
-onMounted(() => {
-  loadPatches()
-})
 </script>
 
 <style scoped>
-.component-view {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 20px;
-  height: calc(100vh - 140px);
-}
-
-/* 工具栏 */
-.toolbar {
-  grid-column: 1 / -1;
+.card-actions {
   display: flex;
-  gap: 16px;
-  align-items: center;
-  padding: 16px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
+  gap: 6px;
+  margin-left: auto;
 }
 
-.search-box {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
+.btn-xs {
+  padding: 4px 10px;
+  font-size: 12px;
 }
 
-.search-icon {
-  position: absolute;
-  left: 12px;
-  font-size: 16px;
-  pointer-events: none;
+.category-list {
+  margin-top: 8px;
 }
 
-.search-input {
-  width: 100%;
-  padding: 10px 12px 10px 40px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-text {
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-text:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-}
-
-/* 补丁列表 */
-.patches-container {
-  overflow-y: auto;
-  padding-right: 8px;
-}
-
-.category-section {
-  margin-bottom: 16px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
+.category {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
   overflow: hidden;
 }
 
 .category-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 10px 12px;
+  background: var(--bg-hover);
   cursor: pointer;
-  user-select: none;
-  transition: background 0.2s;
+  gap: 8px;
 }
 
 .category-header:hover {
-  background: var(--bg-hover);
-}
-
-.category-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
+  background: var(--bg-input);
 }
 
 .category-icon {
-  font-size: 18px;
+  font-size: 14px;
+}
+
+.category-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .category-count {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  font-weight: 400;
+  background: var(--bg-input);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
-.expand-icon {
-  font-size: 12px;
+.category-arrow {
+  font-size: 10px;
   color: var(--text-muted);
-  transition: transform 0.2s;
 }
 
-.expand-icon.expanded {
-  transform: rotate(180deg);
+.category-content {
+  padding: 6px;
 }
 
-.patches-list {
-  border-top: 1px solid var(--border-color);
-}
-
-.patch-item {
+.component-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 8px;
+  gap: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  border-radius: var(--radius-sm);
+  margin-bottom: 3px;
 }
 
-.patch-item:last-child {
-  border-bottom: none;
-}
-
-.patch-item:hover {
+.component-item:hover {
   background: var(--bg-hover);
 }
 
-.patch-item.patch-selected {
-  background: var(--primary-color);
-  color: white;
+.component-item.selected {
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid var(--primary);
 }
 
-.patch-item.patch-selected .patch-desc {
-  color: rgba(255, 255, 255, 0.8);
+.component-checkbox input {
+  width: 16px;
+  height: 16px;
 }
 
-.patch-info {
+.component-info {
   flex: 1;
-  min-width: 0;
 }
 
-.patch-name {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-
-.patch-desc {
-  font-size: 12px;
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 开关 */
-.patch-toggle {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-left: 12px;
-}
-
-.patch-toggle input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--border-color);
-  border-radius: 24px;
-  transition: all 0.3s;
-}
-
-.toggle-slider:before {
-  content: '';
-  position: absolute;
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background: white;
-  border-radius: 50%;
-  transition: all 0.3s;
-}
-
-.patch-toggle input:checked + .toggle-slider {
-  background: var(--success-color);
-}
-
-.patch-toggle input:checked + .toggle-slider:before {
-  transform: translateX(20px);
-}
-
-/* 详情面板 */
-.detail-panel {
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.detail-header {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--border-color);
-}
-
-.detail-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-}
-
-.detail-desc {
+.component-name {
   font-size: 13px;
+  color: var(--text-primary);
+}
+
+.component-desc {
+  font-size: 11px;
   color: var(--text-muted);
-  margin: 0;
-  line-height: 1.5;
+  margin-top: 2px;
 }
 
-.detail-content {
+.selected-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.selected-item {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.detail-section h4 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 12px 0;
-}
-
-.file-list,
-.reg-list,
-.cmd-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.file-item,
-.reg-item,
-.cmd-item {
-  padding: 10px;
-  background: var(--bg-primary);
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.file-item {
-  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
 }
 
-.file-icon {
-  font-size: 14px;
-}
-
-.file-path {
-  flex: 1;
-  font-family: 'Courier New', monospace;
-  color: var(--text-primary);
-  word-break: break-all;
-}
-
-.file-badge {
-  padding: 2px 6px;
-  background: var(--warning-color);
-  color: white;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.reg-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.reg-hive {
-  font-weight: 600;
-  color: var(--primary-color);
-  font-size: 11px;
-}
-
-.reg-key {
-  font-family: 'Courier New', monospace;
-  color: var(--text-primary);
-  word-break: break-all;
-}
-
-.cmd-item code {
-  font-family: 'Courier New', monospace;
-  color: var(--text-primary);
-  font-size: 11px;
-  word-break: break-all;
-}
-
-.dep-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.dep-badge {
-  padding: 4px 10px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+.selected-name {
   font-size: 12px;
   color: var(--text-primary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.btn-large {
+  padding: 10px 32px;
+  font-size: 14px;
 }
 </style>

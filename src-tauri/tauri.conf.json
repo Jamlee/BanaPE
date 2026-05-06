@@ -13,10 +13,10 @@
     "windows": [
       {
         "title": "BanaPE - WinPE Builder",
-        "width": 1200,
-        "height": 800,
-        "minWidth": 900,
-        "minHeight": 600,
+        "width": 960,
+        "height": 650,
+        "minWidth": 800,
+        "minHeight": 550,
         "center": true,
         "decorations": true
       }

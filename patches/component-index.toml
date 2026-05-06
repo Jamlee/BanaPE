@@ -1,0 +1,767 @@
+# BanaPE Component Index - 完全对应 WimBuilder2 WIN10XPE 项目结构
+version = "1.0.0"
+description = "BanaPE WinPE Builder - 完整组件索引（对应 WimBuilder2）"
+
+# ===== 分类定义 =====
+[[categories]]
+id = "configures"
+name = "Configures"
+icon = "⚙️"
+description = "构建配置选项'
+
+[[categories]]
+id = "adk_ocs"
+name = "ADK OCs'
+icon = "📦'
+description = 'ADK 可选组件'
+
+[[categories]]
+id = "components_shell"
+name = 'Shell'
+icon = '🖥️'
+description = 'Shell 程序和界面配置'
+
+[[categories]]
+id = 'components_network'
+name = 'Network'
+icon = '🌐'
+description = '网络组件和驱动'
+
+[[categories]]
+id = 'components_audio'
+name = 'Audio'
+icon = '🔊'
+description = '音频支持'
+
+[[categories]]
+id = 'components_system'
+name = 'System Components'
+icon = '⚙️'
+description = '系统组件 (MMC/DWM/IME/BitLocker等)'
+
+[[categories]]
+id = 'drivers'
+name = 'Drivers'
+icon = '🔧'
+description = '硬件驱动程序'
+
+[[categories]]
+id = 'apps'
+name = 'Applications'
+icon = '💼'
+description = '第三方应用程序'
+
+[[categories]]
+id = 'pematerial'
+name = 'PE Material'
+icon = '📚'
+description = 'PE 额外材料 (维护/媒体/办公等)'
+
+# ===== Configures 配置项 =====
+[[components]]
+id = 'cfg_build_catalog'
+name = 'Build Catalog'
+category = 'configures'
+icon = '📋'
+description = '完整目录文件与 TTS 语音'
+default_enabled = false
+
+[[components]]
+id = 'cfg_loader_network'
+name = 'Loader Network'
+category = 'configures'
+icon = '🔄'
+description = '加载时初始化网络连接'
+default_enabled = true
+
+[[components]]
+id = 'cfg_system_audio'
+name = 'Audio Driver Patch'
+category = 'configures'
+icon = '🔊'
+description = '音频驱动补丁'
+default_enabled = true
+
+[[components]]
+id = 'cfg_system_computername'
+name = 'Computer Name'
+category = 'configures'
+icon = '💻'
+description = '计算机名称设置'
+default_enabled = true
+
+[[components]]
+id = 'cfg_system_peversion'
+name = 'PE Version'
+category = 'configures'
+icon = '🏷️'
+description = 'PE 版本信息配置'
+default_enabled = true
+
+[[components]]
+id = 'cfg_system_productoptions'
+name = 'Product Options'
+category = 'configures'
+icon = '📝'
+description = '产品选项配置 (SafeMode等)'
+default_enabled = true
+
+[[components]]
+id = 'cfg_system_fbwf'
+name = 'FBWF (Filter)'
+category = 'configures'
+icon = '🛡️'
+description = '基于文件的写入过滤器'
+default_enabled = false
+
+[[components]]
+id = 'cfg_system_textassoc'
+name = 'Text Association'
+category = 'configures'
+icon = '📄'
+description = '文本文件关联'
+default_enabled = true
+
+[[components]]
+id = 'cfg_account_admin'
+name = 'Admin Account'
+category = 'configures'
+icon = '👤'
+description = '内置管理员账户配置'
+default_enabled = true
+
+[[components]]
+id = 'cfg_customization_theme'
+name = 'Customization Theme'
+category = 'configures'
+icon = '🎨'
+description = '主题自定义 (透明度等)'
+default_enabled = false
+
+# ===== ADK OCs =====
+[[components]]
+id = 'adk_settings'
+name = 'ADK Settings'
+category = 'adk_ocs'
+icon = '⚙️'
+description = 'ADK 基础设置'
+default_enabled = true
+
+[[components]]
+id = 'adk_fonts'
+name = 'Fonts'
+category = 'adk_ocs'
+icon = '🔤'
+description = '字体支持'
+default_enabled = true
+
+[[components]]
+id = 'adk_network'
+name = 'Network Components'
+category = 'adk_ocs'
+icon = '🌐'
+description = 'ADK 网络组件'
+default_enabled = true
+
+[[components]]
+id = 'adk_powershell'
+name = 'PowerShell'
+category = 'adk_ocs'
+icon = '>'
+description = 'PowerShell 环境'
+default_enabled = true
+
+[[components]]
+id = 'adk_setup'
+name = 'Setup Components'
+category = 'adk_ocs'
+icon = '📦'
+description = '安装程序组件'
+default_enabled = false
+
+[[components]]
+id = 'adk_misc'
+name = 'Miscellaneous'
+category = 'adk_ocs'
+icon = '📌'
+description = '其他 ADK 组件'
+default_enabled = false
+
+# ===== Shell 组件 =====
+[[components]]
+id = 'boot2winre'
+name = 'Boot to WinRE'
+category = 'components_shell'
+icon = '🔄'
+description = '启动到 WinRE 环境 (含 WiFi)'
+default_enabled = false
+
+[[components]]
+id = 'shell_explorer'
+name = 'Explorer'
+category = 'components_shell'
+icon = '📁'
+description = 'Windows 资源管理器 (主题/设置)'
+default_enabled = true
+
+[[components]]
+id = 'shell_winxshell'
+name = 'WinXShell'
+category = 'components_shell'
+icon = '🪟'
+description = '轻量级 Shell 替代方案'
+default_enabled = false
+
+[[components]]
+id = 'shell_startmenu_classic'
+name = 'Classic Start Menu'
+category = 'components_shell'
+icon = '📋'
+description = '经典开始菜单 (Classic Shell / StartIsBack)'
+default_enabled = false
+
+[[components]]
+id = 'shell_settings'
+name = 'Shell Settings'
+category = 'components_shell'
+icon = '▬'
+description = '任务栏/资源管理器详细设置'
+default_enabled = true
+
+# ===== Network 组件 =====
+[[components]]
+id = 'network_full'
+name = 'Full Network Support'
+category = 'components_network'
+icon = '🌐'
+description = '完整网络支持 (TCP/IP/DNS/DHCP/WLAN)'
+default_enabled = true
+
+[[components]]
+id = 'wifi_package'
+name = 'WinPE WiFi Package'
+category = 'components_network'
+icon = '📶'
+description = 'WinPE 无线网络包'
+default_enabled = true
+
+[[components]]
+id = 'rndis'
+name = 'RNDIS Driver'
+category = 'components_network'
+icon = '🔗'
+description = 'USB 网络共享驱动 (手机USB共享)'
+default_enabled = false
+
+[[components]]
+id = 'pppoe'
+name = 'PPPoE Support'
+category = 'components_network'
+icon = '📞'
+description = 'PPPoE 拨号连接支持'
+default_enabled = false
+
+[[components]]
+id = 'patch_drvinst'
+name = 'DrvInst Patch'
+category = 'components_network'
+icon = '🔧'
+description = '驱动安装程序补丁'
+default_enabled = true
+
+# ===== Audio 组件 =====
+[[components]]
+id = 'audio_core'
+name = 'Audio Core'
+category = 'components_audio'
+icon = '🔊'
+description = '核心音频支持 (WASAPI/MMCSS)'
+default_enabled = true
+
+[[components]]
+id = 'media_player'
+name = 'Windows Media Player'
+category = 'components_audio'
+icon = '🎵'
+description = 'Windows Media Player'
+default_enabled = false
+
+# ===== System Components =====
+[[components]]
+id = 'bitlocker'
+name = 'BitLocker'
+category = 'components_system'
+icon = '🔐'
+description = 'BitLocker 磁盘加密支持'
+default_enabled = false
+
+[[components]]
+id = 'cred_dialog'
+name = 'Credential Dialog'
+category = 'components_system'
+icon = '🔑'
+description = '凭据对话框 (UAC提示)'
+default_enabled = false
+
+[[components]]
+id = 'dwm'
+name = 'DWM (Desktop Window Manager)'
+category = 'components_system'
+icon = '✨'
+description = '桌面窗口管理器 (Aero效果)'
+default_enabled = true
+
+[[components]]
+id = 'devices_bluetooth'
+name = 'Bluetooth Support'
+category = 'components_system'
+icon = '📶'
+description = '蓝牙设备支持'
+default_enabled = false
+
+[[components]]
+id = 'devices_camera'
+name = 'Camera Support'
+category = 'components_system'
+icon = '📷'
+description = '摄像头设备支持'
+default_enabled = false
+
+[[components]]
+id = 'devices_dsmsvc'
+name = 'DSM Service'
+category = 'components_system'
+icon = '🖨️'
+description = '设备设置管理器服务'
+default_enabled = false
+
+[[components]]
+id = 'devices_printer'
+name = 'Printer Support'
+category = 'components_system'
+icon = '🖨️'
+description = '打印机和扫描仪支持'
+default_enabled = false
+
+[[components]]
+id = 'ime_zhcn'
+name = 'IME Chinese (Simplified)'
+category = 'components_system'
+icon = '中'
+description = '简体中文输入法 (微软拼音/五笔等)'
+default_enabled = true
+
+[[components]]
+id = 'ime_zhtw'
+name = 'IME Chinese (Traditional)'
+category = 'components_system'
+icon = '繁'
+description = '繁体中文输入法'
+default_enabled = false
+
+[[components]]
+id = 'ime_ja'
+name = 'IME Japanese'
+category = 'components_system'
+icon = 'あ'
+description = '日语输入法'
+default_enabled = false
+
+[[components]]
+id = 'ime_ko'
+name = 'IME Korean'
+category = 'components_system'
+icon = '한'
+description = '韩语输入法'
+default_enabled = false
+
+[[components]]
+id = 'ie_browser'
+name = 'Internet Explorer'
+category = 'components_system'
+icon = '🌐'
+description = 'IE 浏览器'
+default_enabled = false
+
+[[components]]
+id = 'mmc'
+name = 'MMC Snap-ins'
+category = 'components_system'
+icon = '⚙️'
+description = 'Microsoft 管理控制台 (磁盘管理等)'
+default_enabled = true
+
+[[components]]
+id = 'msi'
+name = 'MSI Installer'
+category = 'components_system'
+icon = '📦'
+description = 'Windows Installer 服务'
+default_enabled = true
+
+[[components]]
+id = 'mtp_support'
+name = 'MTP Support'
+category = 'components_system'
+icon = '📱'
+description = 'MTP 设备支持 (Android手机连接)'
+default_enabled = false
+
+[[components]]
+id = 'netfx'
+name = '.NET Framework'
+category = 'components_system'
+icon = '🔄'
+description = '.NET Framework 3.5 运行时'
+default_enabled = false
+
+[[components]]
+id = 'remote_desktop'
+name = 'Remote Desktop'
+category = 'components_system'
+icon = '🖥️'
+description = '远程桌面 (RDP) 支持'
+default_enabled = false
+
+[[components]]
+id = 'search'
+name = 'Windows Search'
+category = 'components_system'
+icon = '🔍'
+description = 'Windows 索引服务'
+default_enabled = false
+
+[[components]]
+id = 'syswow64_basic'
+name = 'SysWOW64 Basic'
+category = 'components_system'
+icon = 'x64'
+description = 'WoW64 32位兼容层基础支持'
+default_enabled = true
+
+[[components]]
+id = 'vcruntime'
+name = 'VC++ Runtime'
+category = 'components_system'
+icon = 'C++'
+description = 'Visual C++ 运行时库'
+default_enabled = true
+
+# ===== Accessories =====
+[[components]]
+id = 'acc_notepad'
+name = 'Notepad'
+category = 'components_system'
+icon = '📝'
+description = '记事本'
+default_enabled = true
+
+[[components]]
+id = 'acc_mspaint'
+name = 'Paint'
+category = 'components_system'
+icon = '🎨'
+description = '画图'
+default_enabled = false
+
+[[components]]
+id = 'acc_snippingtool'
+name = 'Snipping Tool'
+category = 'components_system'
+icon = '✂️'
+description = '截图工具'
+default_enabled = false
+
+[[components]]
+id = 'acc_winphoto'
+name = 'Photo Viewer'
+category = 'components_system'
+icon = '🖼️'
+description = 'Windows 照片查看器'
+default_enabled = false
+
+[[components]]
+id = 'acc_accessibility'
+name = 'Accessibility'
+category = 'components_system'
+icon = '♿'
+description = '辅助功能支持'
+default_enabled = false
+
+[[components]]
+id = 'acc_taskmgr'
+name = 'Task Manager'
+category = 'components_system'
+icon = '📊'
+description = '任务管理器'
+default_enabled = true
+
+[[components]]
+id = 'acc_regedit'
+name = 'Registry Editor'
+category = 'components_system'
+icon = '🗄️'
+description = '注册表编辑器'
+default_enabled = true
+
+# ===== Runtime Kits =====
+[[components]]
+id = 'rt_appcompat'
+name = 'App Compatibility'
+category = 'components_system'
+icon = '✔'
+description = '应用兼容性层'
+default_enabled = false
+
+[[components]]
+id = 'rt_arm64_support'
+name = 'ARM64 x86_64 Support'
+category = 'components_system'
+icon = '🔄'
+description = 'ARM64 架构 x86_64 兼容层'
+default_enabled = false
+
+[[components]]
+id = 'rt_compatibility'
+name = 'Compatibility Mode'
+category = 'components_system'
+icon = '🔗'
+description = '兼容性模式'
+default_enabled = false
+
+[[components]]
+id = 'rt_directx'
+name = 'DirectX'
+category = 'components_system'
+icon = '🎮'
+description = 'DirectX 运行时'
+default_enabled = false
+
+[[components]]
+id = 'rt_speech_onecore'
+name = 'Speech OneCore'
+category = 'components_system'
+icon = '🗣️'
+description = '语音识别运行时'
+default_enabled = false
+
+[[components]]
+id = 'rt_syswow_sapi'
+name = 'SysWOW64 SAPI'
+category = 'components_system'
+icon = '🔊'
+description = 'WoW64 SAPI 支持'
+default_enabled = false
+
+# ===== UWP/AppX =====
+[[components]]
+id = 'uwp_taskbar'
+name = 'UWP Taskbar'
+category = 'components_system'
+icon = '▬'
+description = 'UWP 任务栏设置 (隐藏搜索框等)'
+default_enabled = false
+
+[[components]]
+id = 'uwp_startmenu'
+name = 'UWP Start Menu'
+category = 'components_system'
+icon = '🏠'
+description = 'UWP 开始菜单'
+default_enabled = false
+
+[[components]]
+id = 'uwp_settings'
+name = 'UWP Settings'
+category = 'components_system'
+icon = '⚙️'
+description = 'UWP 设置应用'
+default_enabled = false
+
+[[components]]
+id = 'uwp_ime'
+name = 'UWP IME'
+category = 'components_system'
+icon = '⌨️'
+description = 'UWP 输入法面板'
+default_enabled = false
+
+[[components]]
+id = 'uwp_taskmgr'
+name = 'UWP Task Manager'
+category = 'components_system'
+icon = '📈'
+description = 'UWP 任务管理器'
+default_enabled = false
+
+[[components]]
+id = 'uwp_appsrvs'
+name = 'UWP App Services'
+category = 'components_system'
+icon = '📱'
+description = 'UWP 应用服务框架'
+default_enabled = false
+
+[[components]]
+id = 'uwp_appxapps'
+name = 'UWP AppX Apps'
+category = 'components_system'
+icon = '📲'
+description = '预装 UWP 应用'
+default_enabled = false
+
+# ===== Drivers =====
+[[components]]
+id = 'drv_system'
+name = 'System Drivers'
+category = 'drivers'
+icon = '🔧'
+description = '系统驱动 (存储/显示/音频等)'
+default_enabled = true
+
+# ===== Applications =====
+[[components]]
+id = 'app_7zip'
+name = '7-Zip'
+category = 'apps'
+icon = '📦'
+description = '7-Zip 压缩工具'
+default_enabled = true
+
+[[components]]
+id = 'app_explorerpp'
+name = 'Explorer++'
+category = 'apps'
+icon = '📂'
+description = '增强型资源管理器'
+default_enabled = false
+
+[[components]]
+id = 'app_defraggler'
+name = 'Defraggler'
+category = 'apps'
+icon = '💿'
+description = '磁盘碎片整理工具'
+default_enabled = false
+
+[[components]]
+id = 'app_imdisk'
+name = 'ImDisk'
+category = 'apps'
+icon = '💽'
+description = '虚拟磁盘工具'
+default_enabled = false
+
+[[components]]
+id = 'app_hotswap'
+name = 'HotSwap!'
+category = 'apps'
+icon = '🔥'
+description = '硬盘热插拔工具'
+default_enabled = false
+
+[[components]]
+id = 'app_penetwork'
+name = 'PENetwork'
+category = 'apps'
+icon = '🌍'
+description = 'PE 网络管理工具'
+default_enabled = true
+
+[[components]]
+id = 'app_yong_ime'
+name = 'Yong IME'
+category = 'apps'
+icon = '🀄'
+description = '勇哥输入法 (中文)'
+default_enabled = false
+
+[[components]]
+id = 'app_chrome'
+name = 'Chrome Browser'
+category = 'apps'
+icon = '🌐'
+description = 'Google Chrome 浏览器'
+default_enabled = false
+
+# ===== PE Material =====
+[[components]]
+id = 'mat_office2007'
+name = 'Office 2007'
+category = 'pematerial'
+icon = '📊'
+description = 'Microsoft Office 2007'
+default_enabled = false
+
+[[components]]
+id = 'mat_potplayer'
+name = 'PotPlayer'
+category = 'pematerial'
+icon = '🎬'
+description = 'PotPlayer 视频播放器'
+default_enabled = false
+
+[[components]]
+id = 'mat_dismpp'
+name = 'Dism++'
+category = 'pematerial'
+icon = '🛠️'
+description = 'Dism++ 系统镜像工具'
+default_enabled = false
+
+[[components]]
+id = 'mat_everything'
+name = 'Everything'
+category = 'pematerial'
+icon = '🔍'
+description = 'Everything 文件搜索'
+default_enabled = false
+
+[[components]]
+id = 'mat_sumatrapdf'
+name = 'SumatraPDF'
+category = 'pematerial'
+icon = '📕'
+description = 'SumatraPDF PDF阅读器'
+default_enabled = false
+
+[[components]]
+id = 'mat_winntsetup'
+name = 'WinNTSetup'
+category = 'pematerial'
+icon = '💾'
+description = 'WinNTSetup 系统安装工具'
+default_enabled = false
+
+[[components]]
+id = 'mat_mpcbe'
+name = 'MPC-BE'
+category = 'pematerial'
+icon = '🎥'
+description = 'MPC-BE 媒体播放器'
+default_enabled = false
+
+[[components]]
+id = 'mat_libreoffice'
+name = 'LibreOffice'
+category = 'pematerial'
+icon = '📝'
+description = 'LibreOffice 办公套件'
+default_enabled = false
+
+# ===== Media Creation =====
+[[components]]
+id = 'build_iso'
+name = 'Build ISO'
+category = 'pematerial'
+icon = '💿'
+description = '生成可启动 ISO 镜像'
+default_enabled = true
+
+[[components]]
+id = 'build_usb'
+name = 'Create USB'
+category = 'pematerial'
+icon = '💾'
+description = '制作 USB 启动盘'
+default_enabled = false

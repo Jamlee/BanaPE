@@ -1,244 +1,352 @@
 <template>
-  <div class="build-layout">
-    <div class="progress-section">
+  <div class="build-view">
+    <div class="card progress-card">
       <div class="progress-header">
-        <div class="progress-percent">{{ progressPercent }}%</div>
-        <div class="progress-step-info">
-          <div class="progress-current-step">{{ currentStepName }}</div>
-          <div class="progress-step-detail">{{ currentStepDetail }}</div>
+        <div class="progress-icon">🔨</div>
+        <div class="progress-title">构建进度</div>
+      </div>
+      
+      <div class="progress-display">
+        <div class="progress-percent">{{ progress }}%</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
         </div>
+        <div class="progress-status">{{ currentStep }}</div>
       </div>
-      <div class="progress-bar-bg">
-        <div
-          class="progress-bar-fill"
-          :class="{ animating: isBuilding }"
-          :style="{ width: progressPercent + '%' }"
-        ></div>
-      </div>
+    </div>
 
-      <div class="step-list">
-        <div
-          v-for="(step, idx) in buildSteps"
-          :key="idx"
-          class="step-row"
-          :class="getStepClass(idx)"
+    <div class="card steps-card">
+      <div class="card-header">
+        <div class="card-icon">📝</div>
+        <div class="card-title">构建步骤</div>
+      </div>
+      
+      <div class="steps-list">
+        <div 
+          v-for="(step, idx) in steps" 
+          :key="idx" 
+          class="step-item"
+          :class="{ 
+            active: currentStepIndex === idx, 
+            completed: idx < currentStepIndex,
+            pending: idx > currentStepIndex 
+          }"
         >
-          <div class="step-status-icon">{{ getStepIcon(idx) }}</div>
-          <span>{{ step.name }}</span>
-          <span class="step-weight">{{ step.weight }}%</span>
+          <div class="step-number">{{ idx + 1 }}</div>
+          <div class="step-content">
+            <div class="step-name">{{ step.name }}</div>
+            <div class="step-desc">{{ step.desc }}</div>
+          </div>
+          <div class="step-status">
+            <span v-if="idx < currentStepIndex">✓</span>
+            <span v-else-if="idx === currentStepIndex" class="spinner">◐</span>
+            <span v-else>-</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="build-actions">
-      <button class="btn btn-primary" :disabled="isBuilding" @click="startBuild">
-        &#9654; 开始构建
-      </button>
-      <button class="btn btn-danger" :disabled="!isBuilding" @click="cancelBuild">
-        &#9632; 取消
-      </button>
-      <button class="btn btn-secondary" :disabled="isBuilding" @click="cleanup">
-        &#128465; 清理
-      </button>
-      <button class="btn btn-secondary" :disabled="isBuilding" @click="makeISO">
-        &#128190; 制作 ISO
-      </button>
-    </div>
-
-    <div class="log-section">
-      <div class="log-header">
-        <span class="log-title">&#128220; 构建日志</span>
-        <button class="btn btn-browse" @click="clearLog" style="font-size:12px;padding:4px 10px;">清空</button>
-      </div>
-      <div class="log-body" ref="logBody">
-        <div v-for="(line, idx) in logLines" :key="idx" class="log-line">
-          <span class="log-time">{{ line.time }}</span>
-          <span class="log-msg" :class="line.level">{{ line.message }}</span>
+    <div class="card log-card">
+      <div class="card-header">
+        <div class="card-icon">📜</div>
+        <div class="card-title">输出日志</div>
+        <div class="card-actions">
+          <button class="btn btn-secondary btn-xs" @click="clearLog">清空</button>
+          <button class="btn btn-secondary btn-xs" @click="copyLog">复制</button>
         </div>
       </div>
+      
+      <div class="log-content" ref="logContainer">
+        <div 
+          v-for="(log, idx) in logs" 
+          :key="idx" 
+          class="log-item"
+          :class="log.type"
+        >
+          <span class="log-time">{{ log.time }}</span>
+          <span class="log-text">{{ log.text }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-secondary" @click="prevStep">← 返回</button>
+      <button 
+        v-if="!isBuilding" 
+        class="btn btn-primary btn-large" 
+        @click="startBuild"
+      >
+        开始构建
+      </button>
+      <button 
+        v-else 
+        class="btn btn-danger" 
+        @click="stopBuild"
+      >
+        停止构建
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, inject, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, inject, nextTick } from 'vue'
 
-const config = inject('config')
-const wimMounted = inject('wimMounted')
-const logBody = ref(null)
+const currentTab = inject('currentTab')
 
+const progress = ref(0)
+const currentStep = ref('准备开始...')
+const currentStepIndex = ref(-1)
 const isBuilding = ref(false)
-const progressPercent = ref(0)
-const currentStepIdx = ref(-1)
-const currentStepName = ref('准备就绪')
-const currentStepDetail = ref('点击"开始构建"以开始')
-const logLines = reactive([])
+const logs = ref([])
 
-const buildSteps = reactive([
-  { name: '准备工作目录', weight: 2, status: 'pending' },
-  { name: '复制 boot.wim', weight: 3, status: 'pending' },
-  { name: '挂载 WIM 映像', weight: 10, status: 'pending' },
-  { name: '映射驱动器 (SUBST)', weight: 1, status: 'pending' },
-  { name: '加载注册表', weight: 2, status: 'pending' },
-  { name: '应用补丁', weight: 60, status: 'pending' },
-  { name: '卸载注册表', weight: 2, status: 'pending' },
-  { name: '清理日志文件', weight: 1, status: 'pending' },
-  { name: '提交 WIM 映像', weight: 10, status: 'pending' },
-  { name: '导出优化 WIM', weight: 5, status: 'pending' },
-  { name: '创建启动 ISO', weight: 4, status: 'pending' },
-])
+const logContainer = ref(null)
 
-function getStepClass(idx) {
-  const step = buildSteps[idx]
-  if (step.status === 'completed') return 'completed'
-  if (step.status === 'active') return 'active'
-  return 'pending'
-}
+const steps = [
+  { name: '挂载 WIM 文件', desc: '正在挂载 Windows 映像文件' },
+  { name: '应用组件', desc: '正在安装选定的组件' },
+  { name: '配置系统', desc: '正在配置系统设置' },
+  { name: '生成 ISO', desc: '正在生成启动镜像' },
+  { name: '完成', desc: '构建完成' },
+]
 
-function getStepIcon(idx) {
-  const step = buildSteps[idx]
-  if (step.status === 'completed') return '\u2713'
-  if (step.status === 'active') return '\u25CF'
-  return '\u25CB'
-}
-
-function addLog(level, message) {
-  const time = new Date().toLocaleTimeString('zh-CN', { hour12: false })
-  logLines.push({ time, level, message })
+const addLog = (text, type = 'info') => {
+  const now = new Date()
+  const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+  logs.value.push({ time, text, type })
   nextTick(() => {
-    if (logBody.value) logBody.value.scrollTop = logBody.value.scrollHeight
+    if (logContainer.value) {
+      logContainer.value.scrollTop = logContainer.value.scrollHeight
+    }
   })
 }
 
-function clearLog() {
-  logLines.length = 0
-  addLog('info', '日志已清空')
-}
-
-async function startBuild() {
-  if (isBuilding.value) return
+const startBuild = async () => {
   isBuilding.value = true
-  progressPercent.value = 0
-  currentStepIdx.value = -1
-
-  // Reset all steps
-  buildSteps.forEach(s => s.status = 'pending')
-
-  addLog('info', '构建开始...')
-
-  if (window.banape) {
-    // Use real build engine
-    try {
-      const result = await window.banape.startBuild(config.value)
-      addLog('success', '构建完成!')
-    } catch (e) {
-      addLog('error', `构建失败: ${e.message}`)
+  progress.value = 0
+  currentStepIndex.value = 0
+  logs.value = []
+  
+  addLog('开始构建 WinPE 镜像...', 'info')
+  
+  for (let i = 0; i < steps.length && isBuilding.value; i++) {
+    currentStepIndex.value = i
+    currentStep.value = steps[i].name
+    
+    addLog(`[步骤 ${i + 1}] ${steps[i].name}`, 'info')
+    
+    for (let j = 0; j < 20 && isBuilding.value; j++) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      progress.value = Math.min(100, ((i * 20) + j + 1))
     }
-    isBuilding.value = false
-  } else {
-    // Simulate build for dev mode
-    simulateBuild(0)
+    
+    if (i === steps.length - 1) {
+      addLog('构建完成！', 'success')
+      currentStep.value = '构建完成'
+    }
   }
-}
-
-function simulateBuild(stepIdx) {
-  if (!isBuilding.value || stepIdx >= buildSteps.length) {
-    if (isBuilding.value) {
-      progressPercent.value = 100
-      currentStepName.value = '构建完成'
-      currentStepDetail.value = 'WinPE 已成功构建'
-      addLog('success', '构建完成!')
-      isBuilding.value = false
-      wimMounted.value = false
-    }
-    return
-  }
-
-  const step = buildSteps[stepIdx]
-  step.status = 'active'
-  currentStepName.value = step.name
-  currentStepDetail.value = '正在执行...'
-  addLog('info', `[${stepIdx + 1}/${buildSteps.length}] ${step.name}...`)
-
-  if (stepIdx === 2) wimMounted.value = true
-  if (stepIdx === 8) wimMounted.value = false
-
-  // Calculate total progress
-  let completedWeight = 0
-  for (let i = 0; i < stepIdx; i++) completedWeight += buildSteps[i].weight
-
-  const duration = stepIdx === 5 ? 3000 : (stepIdx === 2 ? 2000 : 1000)
-  const interval = 100
-  let subProgress = 0
-
-  const timer = setInterval(() => {
-    if (!isBuilding.value) { clearInterval(timer); return }
-    subProgress += interval / duration
-    if (subProgress > 1) subProgress = 1
-    progressPercent.value = Math.round(completedWeight + step.weight * subProgress)
-    if (subProgress >= 1) {
-      clearInterval(timer)
-      step.status = 'completed'
-      addLog('success', `[${stepIdx + 1}/${buildSteps.length}] ${step.name} - 完成`)
-      setTimeout(() => simulateBuild(stepIdx + 1), 200)
-    }
-  }, interval)
-}
-
-function cancelBuild() {
+  
   isBuilding.value = false
-  addLog('error', '构建已取消')
-  currentStepName.value = '已取消'
-  currentStepDetail.value = '构建已被用户取消'
 }
 
-async function cleanup() {
-  addLog('warn', '执行清理...')
-  wimMounted.value = false
-  if (window.banape) {
-    try {
-      await window.banape.cleanup(config.value)
-      addLog('success', '清理完成')
-    } catch (e) {
-      addLog('error', `清理失败: ${e.message}`)
-    }
-  } else {
-    setTimeout(() => addLog('success', '清理完成'), 500)
-  }
+const stopBuild = () => {
+  isBuilding.value = false
+  addLog('用户取消构建', 'warning')
+  currentStep.value = '已取消'
 }
 
-async function makeISO() {
-  addLog('info', '开始制作 ISO...')
-  if (window.banape) {
-    try {
-      await window.banape.makeISO(config.value)
-      addLog('success', 'ISO 创建成功')
-    } catch (e) {
-      addLog('error', `ISO 创建失败: ${e.message}`)
-    }
-  } else {
-    setTimeout(() => addLog('success', 'ISO 创建成功: _Factory_/BOOTPE.iso'), 1500)
-  }
+const clearLog = () => {
+  logs.value = []
 }
 
-// Listen for build events from Electron
-onMounted(() => {
-  if (window.banape) {
-    window.banape.onProgress((data) => {
-      progressPercent.value = data.percent
-      currentStepName.value = data.message
-      currentStepDetail.value = data.detail || ''
-      if (data.stepIndex !== undefined) {
-        buildSteps.forEach((s, i) => {
-          if (i < data.stepIndex) s.status = 'completed'
-          else if (i === data.stepIndex) s.status = 'active'
-          else s.status = 'pending'
-        })
-      }
-    })
-    window.banape.onLog((data) => {
-      addLog(data.level, data.message)
-    })
-  }
-})
+const copyLog = async () => {
+  const text = logs.value.map(l => `${l.time} ${l.text}`).join('\n')
+  await window.__TAURI__.clipboard.writeText(text)
+  addLog('日志已复制到剪贴板', 'success')
+}
+
+const prevStep = () => {
+  currentTab.value = 1
+}
 </script>
+
+<style scoped>
+.progress-card {
+  text-align: center;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.progress-icon {
+  font-size: 20px;
+}
+
+.progress-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.progress-display {
+  padding: 20px;
+}
+
+.progress-percent {
+  font-size: 48px;
+  font-weight: bold;
+  color: var(--primary-light);
+  margin-bottom: 16px;
+}
+
+.progress-status {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+.steps-list {
+  margin-top: 8px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  transition: all var(--transition-fast);
+}
+
+.step-item.completed {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.step-item.active {
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid var(--primary);
+}
+
+.step-item.pending {
+  opacity: 0.5;
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--text-secondary);
+}
+
+.step-item.completed .step-number {
+  background: var(--success);
+  color: white;
+}
+
+.step-item.active .step-number {
+  background: var(--primary);
+  color: white;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.step-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.step-status {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.step-item.completed .step-status {
+  color: var(--success);
+}
+
+.step-item.active .step-status {
+  color: var(--primary);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.log-content {
+  max-height: 250px;
+  overflow-y: auto;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+}
+
+.log-item {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-time {
+  color: var(--text-muted);
+  margin-right: 10px;
+}
+
+.log-text {
+  color: var(--text-primary);
+}
+
+.log-item.success .log-text {
+  color: var(--success);
+}
+
+.log-item.warning .log-text {
+  color: var(--warning);
+}
+
+.log-item.error .log-text {
+  color: var(--error);
+}
+
+.action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.btn-large {
+  padding: 10px 32px;
+  font-size: 14px;
+}
+</style>

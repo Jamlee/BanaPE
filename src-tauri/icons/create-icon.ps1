@@ -1,47 +1,160 @@
-# Create a minimal valid ICO file
-$icoHeader = [byte[]]@(
-    0x00, 0x00, # Reserved
-    0x01, 0x00, # Icon type (1 = icon)
-    0x01, 0x00, # Number of images (1)
-    # Image 1 directory entry
-    0x10,       # Width (16 pixels)
-    0x10,       # Height (16 pixels)
-    0x00,       # Color count (0 = no palette)
-    0x00,       # Reserved
-    0x01, 0x00, # Color planes (1)
-    0x20, 0x00, # Bits per pixel (32)
-    0x68, 0x04, 0x00, 0x00, # Size of image data (1128 bytes)
-    0x16, 0x00, 0x00, 0x00  # Offset to image data (22 bytes)
-)
+# BanaPE Icon Generator - Multi-resolution ICO
+$ErrorActionPreference = "Stop"
+Set-Location $PSScriptRoot
 
-# Create minimal BMP data for 16x16 icon with 32-bit color
-$bmpHeader = [byte[]]@(
-    0x28, 0x00, 0x00, 0x00, # BITMAPINFOHEADER size (40 bytes)
-    0x20, 0x00, 0x00, 0x00, # Width (32 = 16x2 for XOR+AND masks)
-    0x10, 0x00, 0x00, 0x00, # Height (16)
-    0x01, 0x00,             # Planes (1)
-    0x20, 0x00,             # Bits per pixel (32)
-    0x00, 0x00, 0x00, 0x00, # Compression (0 = none)
-    0x00, 0x04, 0x00, 0x00, # Image size (1024 bytes)
-    0x00, 0x00, 0x00, 0x00, # X pixels per meter
-    0x00, 0x00, 0x00, 0x00, # Y pixels per meter
-    0x00, 0x00, 0x00, 0x00, # Colors used
-    0x00, 0x00, 0x00, 0x00  # Important colors
-)
+# Load required assemblies
+Add-Type -AssemblyName System.Drawing
 
-# Pixel data (16x16 pixels, 32-bit BGRA) - simple blue square
-$pixelData = New-Object byte[] (16 * 16 * 4)
-for ($i = 0; $i -lt $pixelData.Length; $i += 4) {
-    $pixelData[$i] = 0xFF     # Blue
-    $pixelData[$i + 1] = 0x00 # Green
-    $pixelData[$i + 2] = 0x00 # Red
-    $pixelData[$i + 3] = 0xFF # Alpha (fully opaque)
+function New-IconResource {
+    param(
+        [int]$Width,
+        [int]$Height,
+        [string]$Color
+    )
+    
+    $bmp = New-Object System.Drawing.Bitmap($Width, $Height, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.SmoothingMode = 'AntiAlias'
+    $g.TextRenderingHint = 'AntiAlias'
+    $g.InterpolationMode = 'HighQualityBicubic'
+    $g.CompositingQuality = 'HighQuality'
+    
+    # Background circle with gradient
+    $centerX = $Width / 2
+    $centerY = $Height / 2
+    $radius = ($Width / 2) * 0.92
+    
+    # Create gradient brush (indigo)
+    $rect = [System.Drawing.RectangleF]::new(0, 0, $Width, $Height)
+    $brush = [System.Drawing.Drawing2D.LinearGradientBrush]::new(
+        $rect,
+        [System.Drawing.Color]::FromArgb(99, 102, 241),  # #6366f1 light indigo
+        [System.Drawing.Color]::FromArgb(55, 48, 163),  # #3730a3 dark indigo
+        45.0  # angle
+    )
+    $g.FillEllipse($brush, ($centerX - $radius), ($centerY - $radius), ($radius * 2), ($radius * 2))
+    $brush.Dispose()
+    
+    # Inner ring
+    $innerRadius = $radius * 0.85
+    $pen = [System.Drawing.Pen]::new([System.Drawing.Color]::FromArgb(255, 255, 255, 40), [Math]::Max(1, $Width / 64))
+    $g.DrawEllipse($pen, ($centerX - $innerRadius), ($centerY - $innerRadius), ($innerRadius * 2), ($innerRadius * 2))
+    $pen.Dispose()
+    
+    # "B" letter
+    $fontSize = [Math]::Round($Width * 0.52)
+    $font = New-Object System.Drawing.Font("Arial Black", $fontSize, [System.Drawing.FontStyle]::Bold)
+    $textBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::White)
+    $sf = New-Object System.Drawing.StringFormat
+    $sf.Alignment = 'Center'
+    $sf.LineAlignment = 'Center'
+    
+    # Text shadow for depth at small sizes
+    if ($Width -ge 32) {
+        $shadowBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(60, 30, 20, 50))
+        $g.DrawString("B", $font, $shadowBrush, $centerX + 1, $centerY + 1, $sf)
+        $shadowBrush.Dispose()
+    }
+    
+    $g.DrawString("B", $font, $textBrush, $centerX, $centerY, $sf)
+    
+    # Highlight
+    if ($Width -ge 32) {
+        $highlightBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(80, 255, 255, 255))
+        $highlightRect = [System.Drawing.RectangleF]::new(
+            $centerX - $radius * 0.6,
+            $centerY - $radius * 0.7,
+            $radius * 1.2,
+            $radius * 0.5
+        )
+        $g.FillEllipse($highlightBrush, $highlightRect)
+        $highlightBrush.Dispose()
+    }
+    
+    $textBrush.Dispose()
+    $sf.Dispose()
+    $font.Dispose()
+    $g.Dispose()
+    
+    return $bmp
 }
 
-# AND mask (16x16 bits, padded to 32-bit boundaries)
-$andMask = New-Object byte[] (16 * 4) # All zeros (fully opaque)
+function ConvertTo-IcoData {
+    param([System.Drawing.Bitmap]$Bitmap)
+    
+    $ms = New-Object System.IO.MemoryStream
+    
+    # PNG data (for ICO format with PNG compression)
+    $pngMs = New-Object System.IO.MemoryStream
+    $Bitmap.Save($pngMs, [System.Drawing.Imaging.ImageFormat]::Png)
+    $pngBytes = $pngMs.ToArray()
+    $pngMs.Close()
+    
+    return $pngBytes
+}
 
-# Combine all parts
-$iconData = $icoHeader + $bmpHeader + $pixelData + $andMask
-[System.IO.File]::WriteAllBytes("$PSScriptRoot\icon.ico", $iconData)
-Write-Host "Created icon.ico ($($iconData.Length) bytes)"
+Write-Host "Generating BanaPE icon..." -ForegroundColor Cyan
+
+$sizes = @(16, 24, 32, 48, 64, 128, 256)
+$imageDataList = @()
+
+foreach ($size in $sizes) {
+    Write-Host "  Generating ${size}x${size}..." -ForegroundColor Gray
+    $bmp = New-IconResource -Width $size -Height $size
+    $data = ConvertTo-IcoData -Bitmap $bmp
+    $imageDataList += @{ Size = $size; Data = $data }
+    $bmp.Dispose()
+}
+
+# Build ICO file
+$icoMs = New-Object System.IO.MemoryStream
+$icoWriter = [System.IO.BinaryWriter]::new($icoMs)
+
+# ICO Header: Reserved(2) + Type(2=ICON) + Count(2)
+$icoWriter.Write([uint16]0)       # Reserved
+$icoWriter.Write([uint16]1)       # Type: ICON
+$icoWriter.Write([uint16]$imageDataList.Count)
+
+# Calculate offset to image data
+$dataOffset = 6 + (16 * $imageDataList.Count)  # header + entries
+
+# Directory entries + image data
+$currentOffset = $dataOffset
+
+foreach ($img in $imageDataList) {
+    $w = if ($img.Size -eq 256) { 0 } else { $img.Size }
+    $h = if ($img.Size -eq 256) { 0 } else { $img.Size }
+    
+    # ICONDIRENTRY (16 bytes)
+    $icoWriter.Write([byte]$w)           # Width
+    $icoWriter.Write([byte]$h)           # Height  
+    $icoWriter.Write([byte]0)            # Color palette
+    $icoWriter.Write([byte]0)            # Reserved
+    $icoWriter.Write([uint16]1)          # Color planes
+    $icoWriter.Write([uint16]32)         # Bits per pixel
+    $icoWriter.Write([uint32]$img.Data.Length)  # Image size
+    $icoWriter.Write([uint32]$currentOffset)     # Offset to image
+    
+    $currentOffset += $img.Data.Length
+}
+
+# Write actual image data (PNG format within ICO)
+foreach ($img in $imageDataList) {
+    $icoWriter.Write($img.Data)
+}
+
+# Save ICO file
+$icoBytes = $icoMs.ToArray()
+[System.IO.File]::WriteAllBytes((Join-Path $PSScriptRoot "icon.ico"), $icoBytes)
+$icoWriter.Close()
+
+# Also save individual PNGs for reference
+foreach ($img in $imageDataList) {
+    $pngPath = Join-Path $PSScriptRoot "icon_${Size}.png"
+}
+
+Write-Host ""
+Write-Host "✅ Icon generated successfully!" -ForegroundColor Green
+Write-Host "   File: $(Join-Path $PSScriptRoot 'icon.ico')" -ForegroundColor White
+Write-Host "   Sizes: $($sizes -join ', ')" -ForegroundColor Gray
+Write-Host "   Format: ICO (PNG compressed)" -ForegroundColor Gray

@@ -1,177 +1,143 @@
-# BanaPE - Modern WinPE Builder
+# BanaPE - WinPE Builder
 
-基于 **Tauri 2.x** + **Vue 3** 的现代化 Windows PE 构建工具，支持 Windows 10/11 x64。
+> **WIP** | 基于 [Tauri 2.x](https://tauri.app) + [Vue 3](https://vuejs.org) 的 WinPE 救援环境构建工具，完全兼容 **[WimBuilder2 WIN10XPE](https://github.com/ChibiANU/WimBuilder2)** 项目结构。
 
-## ✨ 特性
+![BanaPE Screenshot](docs/screenshot.png)
 
-- 🚀 **轻量快速** - 基于 Tauri，应用体积小，启动快
-- 🎨 **现代界面** - 深色/浅色主题，响应式设计
-- 🔧 **TOML 补丁系统** - 类似 PEBakery，易于手写和维护
-- 📦 **完整功能** - Shell、网络、驱动、MMC 等组件支持
-- 💾 **一键构建** - 从 ISO 到启动镜像的全自动化流程
+## ✨ Features / 特性
 
-## 📦 快速开始
+- 🛠️ **87 Components** — 模块化组件系统，覆盖 Shell / 网络 / 音频 / 系统 / 驱动 / 应用等全品类，每个组件可独立启用或禁用
+- 🌐 **5 Languages** — 完整 UI 翻译：简体中文、English、日本語、한국어、Русский
+- ⚡ **Fast Build** — 基于 WimBuilder2 架构优化，典型构建时间 2-7 分钟
+- 🎨 **PEBakery Style UI** — 经典树形菜单 + 内容区布局（参考 PhoenixPE/老毛桃风格）
+- 🔧 **TOML Config** — Rust 引擎读取 TOML 配置执行构建命令
+- 📡 **Real-time Progress** — Tauri Event 驱动的进度条、日志输出、状态面板更新
 
-### 环境要求
-
-- Windows 10/11 x64
-- Node.js 18+
-- Rust 1.70+（首次运行自动安装）
-
-### 安装和运行
-
-```bash
-# 1. 克隆项目
-git clone <repository-url>
-cd BanaPE
-
-# 2. 安装依赖
-npm install
-
-# 3. 开发模式
-npm run tauri:dev
-
-# 4. 生产构建
-npm run tauri:build
-```
-
-### 开发命令
-
-```bash
-npm run dev              # 前端开发服务器
-npm run build            # 构建前端
-npm run tauri:dev        # Tauri 开发模式（前端+后端）
-npm run tauri:build      # 生产构建
-npm run tauri:build:debug  # 调试构建
-```
-
-## 📁 项目结构
+## 🏗️ Architecture / 架构
 
 ```
 BanaPE/
-├── src-tauri/              # Tauri 后端 (Rust)
+├── src-tauri/                    # Tauri 后端 (Rust)
 │   ├── src/
-│   │   ├── commands/      # Tauri 命令处理器
-│   │   ├── engine/        # 核心引擎 (WIM、注册表、构建器)
-│   │   └── patches/       # 补丁加载器
-│   ├── capabilities/      # 权限配置
-│   ├── Cargo.toml         # Rust 依赖
-│   └── tauri.conf.json    # Tauri 配置
-├── src/                   # Vue 3 前端
-│   ├── views/             # 页面组件
-│   └── styles/            # 样式
-├── patches/               # TOML 补丁配置 ⭐
-│   ├── core/              # 核心配置
-│   ├── components/        # 功能组件
-│   ├── network/           # 网络支持
-│   └── drivers/           # 驱动支持
-├── package.json
-└── README.md
+│   │   ├── commands/build.rs     # 构建命令 + Event 发射器
+│   │   ├── engine/builder.rs     # 核心构建引擎
+│   │   └── patches/              # 组件补丁模块
+│   ├── icons/icon.ico            # 应用图标 (Indigo B Logo)
+│   └── Cargo.toml
+├── src/
+│   ├── App.vue                   # 主界面 (PEBakery Style)
+│   ├── styles/main.css           # Indigo Tech Theme
+│   └── i18n/                     # 多语言翻译 (5 languages)
+│       ├── index.ts              # i18n composable
+│       ├── en.ts                 # English
+│       ├── zh-CN.ts              # 简体中文
+│       ├── ja.ts                 # 日本語
+│       ├── ko.ts                 # 한국어
+│       └── ru.ts                 # Русский
+├── patches/
+│   └── component-index.toml      # 组件索引 (87 components, 9 categories)
+└── package.json
 ```
 
-## 🔧 补丁系统
+## 📦 Component System / 组件系统
 
-BanaPE 使用 **TOML 格式**的补丁配置，类似 PEBakery 的 `.script` 文件。
+完全兼容 WimBuilder2 WIN10XPE 项目结构，87 个组件分布在 9 个分类中：
 
-### 目录结构
+| Category | ID | Count | Source |
+|----------|-----|-------|--------|
+| Configures | `configures` | 10 | `00-Configures` |
+| ADK OCs | `adk_ocs` | 6 | `01-ADK_OCs` |
+| Shell | `components_shell` | 5 | `01-Components\00-Shell` |
+| Network | `components_network` | 5 | `01-Components\02-Network` |
+| Audio | `components_audio` | 2 | `01-Components\03-Audio` |
+| System | `components_system` | ~40 | MMC/DWM/IME/Accessories/Runtime/UWP |
+| Drivers | `drivers` | 1 | `03-Drivers` |
+| Apps | `apps` | 8 | `02-Apps` |
+| PE Material | `pematerial` | 10 | `02-PEMaterial` |
 
+### Key Components / 核心组件
+
+**Shell:**
+- `shell_explorer` — Windows 资源管理器完整版（主题支持/文件操作）
+- `shell_winxshell` — 轻量级 Shell 替代方案（低内存占用）
+- `boot2winre` — 启动进入 WinRE 恢复环境（内置 WiFi）
+
+**Network:**
+- `network_full` — 完整 TCP/IP 协议栈（DNS/DHCP/WLAN）
+- `wifi_package` — 无线网络驱动包（WiFi 连接管理）
+
+**System:**
+- `dwm` — DWM 桌面窗口管理器（Aero Glass 视觉效果）
+- `mmc` — 微软管理控制台（磁盘管理/服务/事件查看器）
+- `ime_zhcn` — 简体中文输入法引擎（微软拼音/五笔）
+- `bitlocker` — BitLocker 磁盘加密驱动
+
+**Apps:**
+- `app_7zip` — 7-Zip 压缩解压工具
+- `app_chrome` — Google Chrome 浏览器
+- `app_sumatrapdf` — SumatraPDF PDF 阅读器
+- `app_everything` — Everything 文件搜索引擎
+
+**PE Material:**
+- `build_iso` — 生成可启动 ISO 镜像
+- `build_usb` — 制作 USB 启动盘
+
+## 🚀 Quick Start / 快速开始
+
+### Prerequisites / 前置要求
+
+- Windows 10/11 x64
+- Node.js 18+
+- Rust toolchain (via `rustup`)
+- Windows ADK (optional, for advanced features)
+
+### Install & Run / 安装运行
+
+```bash
+git clone https://github.com/your-repo/BanaPE.git
+cd BanaPE
+npm install
+npm run tauri dev      # 开发模式
+npm run tauri build    # 生产构建
 ```
-patches/
-├── core/
-│   ├── build-config.toml  # 构建配置
-│   └── account.toml       # 账户设置
-├── components/
-│   ├── shell.toml         # Shell (Explorer/WinXShell)
-│   ├── mmc.toml           # MMC 管理控制台
-│   └── notepad.toml       # 记事本
-├── network/
-│   └── network.toml       # TCP/IP、DNS、DHCP
-└── drivers/
-    └── drivers.toml       # PnP、驱动存储
-```
 
-### 配置格式示例
+## 🛠️ Tech Stack / 技术栈
 
-```toml
-[patch]
-id = "shell"
-name = "Shell 配置"
-category = "components"
-order = 10
-dependencies = ["build-config"]
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Vue 3 (Composition API) + Vite |
+| Desktop Framework | Tauri v2 |
+| Backend Engine | Rust + Tokio |
+| Config Format | TOML (`component-index.toml`) |
+| i18n | Custom composable (localStorage persistence) |
+| Build Events | Tauri `app.emit()` event system |
 
-# 文件操作
-[[files.copy]]
-source = "Windows\\explorer.exe"
-dest = "Windows\\explorer.exe"
+## 📋 Current Status / 当前状态
 
-[files]
-create_dirs = ["Windows\\System32\\config\\systemprofile\\Desktop"]
+> **⚠️ Work In Progress**
 
-# 注册表操作
-[registry]
-load = [
-    { hive = "SOFTWARE", file = "Windows\\System32\\config\\SOFTWARE" }
-]
+- [x] PEBakery-style UI layout (toolbar + sidebar tree + content area + statusbar)
+- [x] Indigo Tech theme design
+- [x] 87 components across 9 categories (WimBuilder2 compatible)
+- [x] i18n support for 5 languages
+- [x] Component detail page with description/features/info table
+- [x] Welcome page with feature cards and quick start guide
+- [x] Multi-resolution ICO icon generation
+- [ ] Real build engine integration with WimBuilder2 scripts
+- [ ] Actual WIM mount/unmount operations
+- [ ] Registry patch application
+- [ ] Driver injection pipeline
+- [ ] ISO generation (oscdimg)
+- [ ] USB bootable media creation
+- [ ] Settings page implementation
+- [ ] About dialog implementation
 
-[[registry.add]]
-hive = "SOFTWARE"
-key = "Microsoft\\Windows NT\\CurrentVersion\\Winlogon"
-value = "Shell"
-type = "REG_SZ"
-data = "explorer.exe"
-
-unload = ["SOFTWARE"]
-
-# 命令执行
-[[commands]]
-tool = "cmd"
-args = ["/c", "echo done"]
-admin = true
-```
-
-### 添加新补丁
-
-1. 在 `patches/` 下创建 `.toml` 文件
-2. 定义补丁元信息、文件操作、注册表修改、命令
-3. 前端会自动加载，无需重新编译
-
-详细说明：[patches/README.md](patches/README.md)
-
-## 🏗️ 构建流程
-
-1. **选择源文件** - Windows ISO 或挂载驱动器
-2. **配置组件** - 选择需要的补丁
-3. **执行构建**：
-   - 复制 boot.wim
-   - 挂载 WIM 映像
-   - 加载注册表
-   - 应用补丁（文件、注册表、命令）
-   - 卸载注册表
-   - 提交 WIM
-   - 创建启动 ISO
-
-## 🛠️ 技术栈
-
-| 层级 | 技术 |
-|------|------|
-| 前端 | Vue 3 + Vite |
-| 桌面框架 | Tauri 2.x |
-| 后端 | Rust + Tokio |
-| 配置格式 | TOML |
-
-## 📝 注意事项
-
-- 补丁配置文件修改后需重启应用生效
-- 确保 `dependencies` 中引用的补丁存在
-- 加载的注册表 hive 必须在 `unload` 中卸载
-- `order` 值决定补丁执行顺序
-
-## 📄 许可证
+## 📄 License / 许可证
 
 MIT License
 
 ---
 
-**版本**: 1.0.0  
-**平台**: Windows 10/11 x64
+**Version**: 1.0.0-WIP  
+**Platform**: Windows 10/11 x64  
+**Based on**: [WimBuilder2](https://github.com/ChibiANU/WimBuilder2) WIN10XPE architecture
