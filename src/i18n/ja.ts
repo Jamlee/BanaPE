@@ -2,7 +2,7 @@ import en from './en'
 
 export default {
   app: { ...en.app },
-  toolbar: { build: 'ビルド', refresh: '更新', settings: '設定', logs: 'ログ', utilities: 'ユーティリティ', about: 'について' },
+  toolbar: { build: 'ビルド', refresh: '更新', settings: '設定', logs: 'ログ', test: 'テスト', utilities: 'ユーティリティ', about: 'について' },
   status: { status: 'ステータス', source: 'ソース', drive: 'ドライブ', type: 'タイプ', components: 'コンポーネント', notSet: '未設定', idle: '待機中', ready: '準備完了', building: 'ビルド中', error: 'エラー', selected: '{count}/{total}' },
   sidebar: { title: 'コンポーネント', allExpand: 'すべて展開' },
 
@@ -125,7 +125,8 @@ export default {
     source: { title: '📁 Windows ソース設定', adkTitle: '📦 ADK 設定', pathLabel: 'ソースフォルダーパス', pathPlaceholder: 'Windows インストールソースを選択...', browse: '参照...', detected: '検出されました：{filename}（{version}、{size}）', version: 'バージョン', size: 'サイズ', images: 'イメージ数', bootIndex: 'ブートイメージインデックス', image: 'イメージ {index}', adkPathLabel: 'ADK インストールパス', adkPlaceholder: '自動検出...' },
     component: { idLabel: 'ID', categoryLabel: 'カテゴリ', statusLabel: 'ステータス', enabled: '有効', disabled: '無効', enableBtn: 'コンポーネントを有効にする', disableBtn: 'コンポーネントを無効にする', descTitle: '説明', infoTitle: '技術情報', whatItDoes: 'このコンポーネントの機能', wimSource: 'WimBuilder2 ソース' },
     build: { title: '🔨 ビルド進行状況', logTitle: '📜 出力ログ', noLog: 'ログエントリはまだありません...', clear: 'クリア', copy: 'コピー', copyAll: 'すべてコピー' },
-    logs: { title: '📜 ビルドログ', noLog: '利用可能なログはありません。' },
+    logs: { title: '📜 ビルドログ', noLog: 'ログエントリはありません。' },
+    test: { title: '自動テストスイート', isoPath: 'ISO パス', bootIndex: 'ブートインデックス', timeout: 'タイムアウト(秒)', runBtn: 'テスト実行', running: '実行中', resultsTitle: 'テスト結果', executing: 'マウントされたPEイメージに対してテストを実行中...', logTitle: 'テストログ' },
   },
 
   steps: [

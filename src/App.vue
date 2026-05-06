@@ -18,6 +18,84 @@
             <div class="status-label">{{ $t('status.status') }}</div>
             <div class="status-value" :class="{ highlight: isBuilding }">{{ $t(`status.${isBuilding ? 'building' : wimError ? 'error' : wimMounted ? 'ready' : 'idle'}`) }}</div>
           </div>
+
+          <!-- 测试页面 -->
+          <div v-if="currentView === 'test'" class="config-page">
+            <div class="card test-config-card">
+              <div class="card-header"><span class="card-title">🧪 {{ $t('pages.test.title') }}</span></div>
+              <div class="card-body" style="display:flex;gap:16px;flex-wrap:wrap;align-items:end;">
+                <div style="flex:1;min-width:280px;">
+                  <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">{{ $t('pages.test.isoPath') }}</label>
+                  <input v-model="testConfig.isoPath" type="text" 
+                    style="width:100%;padding:6px 10px;border:1px solid var(--content-border);border-radius:4px;font-size:12px;font-family:monospace;background:white;" />
+                </div>
+                <div style="min-width:100px;">
+                  <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">{{ $t('pages.test.bootIndex') }}</label>
+                  <select v-model.number="testConfig.bootIndex" 
+                    style="width:100%;padding:6px 10px;border:1px solid var(--content-border);border-radius:4px;font-size:12px;">
+                    <option :value="1">1</option>
+                    <option :value="2">2</option>
+                  </select>
+                </div>
+                <div style="min-width:120px;">
+                  <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">{{ $t('pages.test.timeout') }}</label>
+                  <input v-model.number="testConfig.timeoutSeconds" type="number" min="30" max="900"
+                    style="width:100%;padding:6px 10px;border:1px solid var(--content-border);border-radius:4px;font-size:12px;" />
+                </div>
+                <button class="btn btn-primary" @click="runTests" :disabled="isTestRunning" style="white-space:nowrap;padding:8px 20px;">
+                  <span v-if="!isTestRunning">▶ {{ $t('pages.test.runBtn') }}</span>
+                  <span v-else class="spinner" style="display:inline-block;">◐ {{ $t('pages.test.running') }}...</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Test Results -->
+            <div v-if="testResults.tests.length > 0 || isTestRunning" class="card" style="margin-top:10px;">
+              <div class="card-header">
+                <span class="card-title">{{ $t('pages.test.resultsTitle') }}</span>
+                <span v-if="testResults.total > 0" style="margin-left:auto;font-size:12px;">
+                  <span style="color:var(--success);font-weight:700;">✓ {{ testResults.passed }}</span> / 
+                  <span style="color:#ef4444;font-weight:700;">✗ {{ testResults.failed }}</span> / 
+                  <span style="color:var(--text-muted);">{{ testResults.total }}</span>
+                  <span style="color:var(--text-secondary);margin-left:6px;">({{ testResults.durationMs }}ms)</span>
+                </span>
+              </div>
+              <div class="card-body">
+                <div class="test-results-list">
+                  <div v-for="(t, idx) in testResults.tests" :key="idx" class="test-result-item" :class="{ pass: t.passed, fail: !t.passed }">
+                    <div class="test-result-icon">{{ t.passed ? '✓' : '✗' }}</div>
+                    <div class="test-result-body">
+                      <div class="test-result-name">{{ t.name }}</div>
+                      <div class="test-result-msg">{{ t.message }}</div>
+                    </div>
+                    <div class="test-result-meta">
+                      <span class="test-cat-badge">{{ t.category }}</span>
+                      <span class="test-dur">{{ t.durationMs }}ms</span>
+                    </div>
+                  </div>
+                  <div v-if="isTestRunning && testResults.tests.length === 0" style="text-align:center;padding:24px;color:var(--text-muted);">
+                    <div class="spinner" style="font-size:24px;margin-bottom:8px;">◐</div>
+                    <div>{{ $t('pages.test.executing') }}...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Test Log -->
+            <div v-if="testLogs.length > 0" class="card log-card" style="margin-top:10px;">
+              <div class="card-header">
+                <span class="card-title">📜 {{ $t('pages.test.logTitle') }}</span>
+                <button class="btn btn-xs btn-secondary" @click="testLogs = []">{{ $t('pages.build.clear') }}</button>
+              </div>
+              <div class="card-body">
+                <div class="log-container" style="max-height:250px;">
+                  <div v-for="(log, idx) in testLogs" :key="idx" class="log-line" :class="log.level === 'error' ? 'error' : log.level === 'success' ? 'success' : 'info'">
+                    <span class="log-time">{{ log.time }}</span><span class="log-msg">{{ log.text }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="status-item">
           <div>
@@ -61,6 +139,10 @@
         <button class="btn-tool" @click="currentView = 'logs'">
           <span class="btn-tool-icon">📋</span>
           <span class="btn-tool-label">{{ $t('toolbar.logs') }}</span>
+        </button>
+        <button class="btn-tool" :class="{ active: currentView === 'test' }" @click="runTests">
+          <span class="btn-tool-icon">🧪</span>
+          <span class="btn-tool-label">{{ $t('toolbar.test') }}</span>
         </button>
         
         <!-- 语言切换 -->
@@ -654,6 +736,16 @@ const buildProgress = ref(0)
 const buildStepIndex = ref(-1)
 const currentBuildStep = ref($t('contentStatus.configure'))
 
+// ===== Test Suite State =====
+const isTestRunning = ref(false)
+const testConfig = reactive({
+  isoPath: 'e:\\iso\\Win11_25H2_English_x64_v2.iso',
+  bootIndex: 1,
+  timeoutSeconds: 300,
+})
+const testResults = reactive({ total: 0, passed: 0, failed: 0, skipped: 0, durationMs: 0, tests: [], isoPath: '', mountDir: '' })
+const testLogs = ref([])
+
 const expandedGroups = ref(['configures', 'adk_ocs', 'components_shell', 'components_network'])
 const groupStates = reactive({
   configures: true, adk_ocs: true, components_shell: true, components_network: true,
@@ -881,6 +973,39 @@ function addLog(text, type = 'info') {
   const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`
   logs.value.push({ time, text, type })
   nextTick(() => { if (logContainer.value) logContainer.value.scrollTop = logContainer.value.scrollHeight })
+}
+
+async function runTests() {
+  if (isTestRunning.value) return
+  currentView.value = 'test'
+  isTestRunning.value = true
+  testResults.total = 0; testResults.passed = 0; testResults.failed = 0; testResults.skipped = 0
+  testResults.durationMs = 0; testResults.tests = []
+  testLogs.value = []
+
+  const unlistenLog = await window.__TAURI__.event.listen('test:log', (e) => {
+    testLogs.value.push(e.payload)
+    nextTick(() => { const el = document.querySelector('.log-container'); if(el) el.scrollTop = el.scrollHeight })
+  })
+
+  const unlistenResult = await window.__TAURI__.event.listen('test:result', (e) => {
+    const r = e.payload
+    Object.assign(testResults, r)
+  })
+
+  const unlistenStatus = await window.__TAURI__.event.listen('test:status', () => {})
+
+  try {
+    const { invoke } = window.__TAURI__.core
+    const result = await invoke('test_start', { config: testConfig })
+    if (result) Object.assign(testResults, result)
+  } catch (e) {
+    testLogs.value.push({ time: new Date().toLocaleTimeString(), text: String(e), level: 'error' })
+    testResults.failed += 1
+  }
+
+  unlistenLog(); unlistenResult(); unlistenStatus()
+  isTestRunning.value = false
 }
 
 async function startBuild() {

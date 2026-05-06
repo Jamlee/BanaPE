@@ -1,6 +1,7 @@
 mod engine;
 mod patches;
 mod commands;
+mod tests;
 
 use engine::WimManager;
 use std::sync::Mutex;
@@ -34,6 +35,9 @@ pub fn run() {
             commands::patches::patches_get_list,
             commands::patches::patches_get_by_category,
             commands::patches::patches_get_by_id,
+            commands::tests::test_start,
+            commands::tests::test_is_running,
+            commands::tests::test_get_default_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -68,6 +68,24 @@ impl ToolRunner {
         }
     }
 
+    /// Run a command from an explicit path (not resolving via bin_dir)
+    pub fn run_from_path(&self, exe_path: &str, args: &[String], options: RunOptions) -> Result<RunResult, String> {
+        let output = StdCommand::new(exe_path)
+            .args(args)
+            .creation_flags(0x08000000)
+            .output()
+            .map_err(|e| format!("Failed to start: {} - {}", exe_path, e))?;
+
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+
+        if !output.status.success() && !options.ignore_error {
+            Err(format!("Command failed: {} {}\n{}", exe_path, args.join(" "), stderr))
+        } else {
+            Ok(RunResult { stdout, stderr, code: output.status.code() })
+        }
+    }
+
     /// Resolve tool path
     pub fn resolve_tool(&self, tool: &str) -> PathBuf {
         let system_tools = ["dism", "reg", "subst", "xcopy", "copy", "mkdir", "rmdir", "del", "icacls", "sc"];

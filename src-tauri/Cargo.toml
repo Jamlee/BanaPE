@@ -25,3 +25,4 @@ regex = "1"
 tokio = { version = "1", features = ["full"] }
 rfd = "0.14"
 chrono = { version = "0.4", features = ["serde"] }
+sevenz-rust = "0.6"

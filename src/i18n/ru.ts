@@ -2,7 +2,7 @@ import en from './en'
 
 export default {
   app: { ...en.app },
-  toolbar: { build: 'Сборка', refresh: 'Обновить', settings: 'Настройки', logs: 'Журнал', utilities: 'Утилиты', about: 'О программе' },
+  toolbar: { build: 'Сборка', refresh: 'Обновить', settings: 'Настройки', logs: 'Журнал', test: 'Тест', utilities: 'Утилиты', about: 'О программе' },
   status: { status: 'Статус', source: 'Источник', drive: 'Диск', type: 'Тип', components: 'Компоненты', notSet: 'Не задано', idle: 'Ожидание', ready: 'Готово', building: 'Сборка', error: 'Ошибка', selected: '{count}/{total}' },
   sidebar: { title: 'Компоненты', allExpand: 'Все' },
 
@@ -126,6 +126,7 @@ export default {
     component: { idLabel: 'ID', categoryLabel: 'Категория', statusLabel: 'Статус', enabled: 'Включено', disabled: 'Отключено', enableBtn: 'Включить компонент', disableBtn: 'Отключить компонент', descTitle: 'Описание', infoTitle: 'Техническая информация', whatItDoes: 'Что делает этот компонент', wimSource: 'Источник WimBuilder2' },
     build: { title: '🔨 Прогресс сборки', logTitle: '📜 Журнал вывода', noLog: 'Записей в журнале пока нет...', clear: 'Очистить', copy: 'Копировать', copyAll: 'Копировать всё' },
     logs: { title: '📜 Журнал сборки', noLog: 'Доступных записей нет.' },
+    test: { title: 'Автоматизированный набор тестов', isoPath: 'Путь к ISO', bootIndex: 'Индекс загрузки', timeout: 'Таймаут (сек)', runBtn: 'Запустить тесты', running: 'Выполняется', resultsTitle: 'Результаты тестов', executing: 'Выполнение тестов против смонтированного PE-образа...', logTitle: 'Журнал тестов' },
   },
 
   steps: [

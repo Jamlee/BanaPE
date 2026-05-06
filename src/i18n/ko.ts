@@ -2,7 +2,7 @@ import en from './en'
 
 export default {
   app: { ...en.app },
-  toolbar: { build: '빌드', refresh: '새로고침', settings: '설정', logs: '로그', utilities: '유틸리티', about: '정보' },
+  toolbar: { build: '빌드', refresh: '새로고침', settings: '설정', logs: '로그', test: '테스트', utilities: '유틸리티', about: '정보' },
   status: { status: '상태', source: '소스', drive: '드라이브', type: '유형', components: '구성 요소', notSet: '설정 안됨', idle: '대기 중', ready: '준비 완료', building: '빌드 중', error: '오류', selected: '{count}/{total}' },
   sidebar: { title: '구성 요소', allExpand: '전체 펼치기' },
 
@@ -126,6 +126,7 @@ export default {
     component: { idLabel: 'ID', categoryLabel: '카테고리', statusLabel: '상태', enabled: '활성화됨', disabled: '비활성화됨', enableBtn: '구성 요소 활성화', disableBtn: '구성 요소 비활성화', descTitle: '설명', infoTitle: '기술 정보', whatItDoes: '이 구성 요소의 기능', wimSource: 'WimBuilder2 소스' },
     build: { title: '🔨 빌드 진행률', logTitle: '📜 출력 로그', noLog: '로그 항목이 아직 없습니다...', clear: '지우기', copy: '복사', copyAll: '모두 복사' },
     logs: { title: '📜 빌드 로그', noLog: '사용 가능한 로그가 없습니다.' },
+    test: { title: '자동화 테스트 스위트', isoPath: 'ISO 경로', bootIndex: '부트 인덱스', timeout: '타임아웃(초)', runBtn: '테스트 실행', running: '실행 중', resultsTitle: '테스트 결과', executing: '마운트된 PE 이미지에 대해 테스트 실행 중...', logTitle: '테스트 로그' },
   },
 
   steps: [

@@ -7,6 +7,7 @@ export default {
     refresh: '刷新',
     settings: '设置',
     logs: '日志',
+    test: '测试',
     utilities: '工具',
     about: '关于',
   },
@@ -212,7 +213,18 @@ export default {
       copy: '复制',
       copyAll: '复制全部',
     },
-    logs: { title: '📜 构建日志', noLog: '暂无可用日志。' },
+    logs: { title: '📜 构建日志', noLog: '暂无日志记录。' },
+    test: {
+      title: '自动化测试套件',
+      isoPath: 'ISO 路径',
+      bootIndex: '启动索引',
+      timeout: '超时（秒）',
+      runBtn: '运行测试',
+      running: '运行中',
+      resultsTitle: '测试结果',
+      executing: '正在对挂载的 PE 映像执行测试...',
+      logTitle: '测试日志',
+    },
   },
 
   steps: [

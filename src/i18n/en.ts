@@ -1,7 +1,7 @@
 export default {
   app: { name: 'BanaPE', subtitle: 'WinPE Builder', version: 'v1.0.0', style: 'Indigo Tech Style' },
   
-  toolbar: { build: 'Build', refresh: 'Refresh', settings: 'Settings', logs: 'Logs', utilities: 'Utilities', about: 'About' },
+  toolbar: { build: 'Build', refresh: 'Refresh', settings: 'Settings', logs: 'Logs', test: 'Test', about: 'About' },
 
   status: { status: 'Status', source: 'Source', drive: 'Drive', type: 'Type', components: 'Components', notSet: 'Not Set', idle: 'Idle', ready: 'Ready', building: 'Building', error: 'Error', selected: '{count}/{total}' },
 
@@ -193,6 +193,17 @@ export default {
       copyAll: 'Copy All',
     },
     logs: { title: '📜 Build Logs', noLog: 'No log entries available.' },
+    test: {
+      title: 'Automated Test Suite',
+      isoPath: 'ISO Path',
+      bootIndex: 'Boot Index',
+      timeout: 'Timeout (sec)',
+      runBtn: 'Run Tests',
+      running: 'Running',
+      resultsTitle: 'Test Results',
+      executing: 'Executing tests against mounted PE image',
+      logTitle: 'Test Log',
+    },
   },
 
   steps: [
